@@ -1,0 +1,28 @@
+{
+    "Home": "Koti",
+    "Dashboard": "Kojelauta",
+    "Explore": "Tutki",
+    "Settings": "Asetukset",
+    "LoadingNotes": "Ladataan muistiinpanoja...",
+    "SearchNotes": "Etsi muistiinpanoja...",
+    "SettingsTitle": "Asetukset",
+    "SettingsDescription": "Täällä voit hallita sovelluksen asetuksia.",
+    "Notes": "Muistiinpanot",
+    "NoteTitlePlaceholder": "Otsikko tähän...",
+    "ContentPlaceholder": "Kirjoita sisältö tähän...",
+    "Save": "Tallenna",
+    "Edit": "Muokkaa",
+    "Delete": "Poista",
+    "Close": "Sulje",
+    "Share": "Jaa",
+    "Download": "Lataa",
+    "Cancel": "Peruuta",
+    "NoteStats": "Muistiinpanotilastot",
+    "CharacterCount": "Merkkien määrä",
+    "WordCount": "Sanojen määrä",
+    "MaxLimit": "Enimmäisraja",
+    "NewNoteTitle": "Uusi Muistiinpano",
+    "AddNote": "Lisää Muistiinpano",
+    "Language": "Kieli"
+  }
+  

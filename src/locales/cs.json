@@ -1,0 +1,28 @@
+{
+    "Home": "Domů",
+    "Dashboard": "Nástěnka",
+    "Explore": "Prozkoumat",
+    "Settings": "Nastavení",
+    "LoadingNotes": "Načítání poznámek...",
+    "SearchNotes": "Hledat v poznámkách...",
+    "SettingsTitle": "Nastavení",
+    "SettingsDescription": "Zde můžete spravovat nastavení aplikace.",
+    "Notes": "Poznámky",
+    "NoteTitlePlaceholder": "Název zde...",
+    "ContentPlaceholder": "Zadejte obsah zde...",
+    "Save": "Uložit",
+    "Edit": "Upravit",
+    "Delete": "Smazat",
+    "Close": "Zavřít",
+    "Share": "Sdílet",
+    "Download": "Stáhnout",
+    "Cancel": "Zrušit",
+    "NoteStats": "Statistika Poznámky",
+    "CharacterCount": "Počet znaků",
+    "WordCount": "Počet slov",
+    "MaxLimit": "Maximální limit",
+    "NewNoteTitle": "Nová Poznámka",
+    "AddNote": "Přidat Poznámku",
+    "Language": "Jazyk"
+  }
+  

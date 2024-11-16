@@ -1,0 +1,28 @@
+{
+    "Home": "ホーム",
+    "Dashboard": "パネル",
+    "Explore": "探索する",
+    "Settings": "設定",
+    "LoadingNotes": "ノートを読み込んでいます...",
+    "SearchNotes": "ノートを検索...",
+    "SettingsTitle": "設定",
+    "SettingsDescription": "ここでアプリの設定を管理できます。",
+    "Notes": "ノート",
+    "NoteTitlePlaceholder": "ここにタイトル...",
+    "ContentPlaceholder": "ここに内容を入力してください...",
+    "Save": "保存する",
+    "Edit": "編集する",
+    "Delete": "削除する",
+    "Close": "閉じる",
+    "Share": "共有",
+    "Download": "ダウンロード",
+    "Cancel": "キャンセル",
+    "NoteStats": "ノート統計",
+    "CharacterCount": "文字数",
+    "WordCount": "単語数",
+    "MaxLimit": "最大制限",
+    "NewNoteTitle": "新しいノート",
+    "AddNote": "ノートを追加",
+    "Language": "言語"
+  }
+  

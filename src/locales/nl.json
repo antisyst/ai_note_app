@@ -1,0 +1,28 @@
+{
+    "Home": "Home",
+    "Dashboard": "Dashboard",
+    "Explore": "Verkennen",
+    "Settings": "Instellingen",
+    "LoadingNotes": "Notities laden...",
+    "SearchNotes": "Zoek in notities...",
+    "SettingsTitle": "Instellingen",
+    "SettingsDescription": "Hier kunt u de instellingen van de app beheren.",
+    "Notes": "Notities",
+    "NoteTitlePlaceholder": "Titel hier...",
+    "ContentPlaceholder": "Typ hier de inhoud...",
+    "Save": "Opslaan",
+    "Edit": "Bewerken",
+    "Delete": "Verwijderen",
+    "Close": "Sluiten",
+    "Share": "Delen",
+    "Download": "Downloaden",
+    "Cancel": "Annuleren",
+    "NoteStats": "Notitiestatistieken",
+    "CharacterCount": "Aantal tekens",
+    "WordCount": "Aantal woorden",
+    "MaxLimit": "Maximale limiet",
+    "NewNoteTitle": "Nieuwe Notitie",
+    "AddNote": "Notitie toevoegen",
+    "Language": "Taal"
+  }
+  

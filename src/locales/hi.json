@@ -1,0 +1,28 @@
+{
+    "Home": "मुख्य पृष्ठ",
+    "Dashboard": "डैशबोर्ड",
+    "Explore": "खोजें",
+    "Settings": "सेटिंग्स",
+    "LoadingNotes": "नोट्स लोड हो रहे हैं...",
+    "SearchNotes": "नोट्स खोजें...",
+    "SettingsTitle": "सेटिंग्स",
+    "SettingsDescription": "यहां आप ऐप की सेटिंग्स प्रबंधित कर सकते हैं।",
+    "Notes": "नोट्स",
+    "NoteTitlePlaceholder": "यहां शीर्षक...",
+    "ContentPlaceholder": "यहां सामग्री लिखें...",
+    "Save": "सेव करें",
+    "Edit": "संपादित करें",
+    "Delete": "हटाएं",
+    "Close": "बंद करें",
+    "Share": "साझा करें",
+    "Download": "डाउनलोड करें",
+    "Cancel": "रद्द करें",
+    "NoteStats": "नोट्स सांख्यिकी",
+    "CharacterCount": "अक्षर गिनती",
+    "WordCount": "शब्द गिनती",
+    "MaxLimit": "अधिकतम सीमा",
+    "NewNoteTitle": "नया नोट",
+    "AddNote": "नोट जोड़ें",
+    "Language": "भाषा"
+  }
+  

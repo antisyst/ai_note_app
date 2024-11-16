@@ -1,0 +1,28 @@
+{
+    "Home": "Strona główna",
+    "Dashboard": "Panel",
+    "Explore": "Eksploruj",
+    "Settings": "Ustawienia",
+    "LoadingNotes": "Ładowanie notatek...",
+    "SearchNotes": "Szukaj w notatkach...",
+    "SettingsTitle": "Ustawienia",
+    "SettingsDescription": "Tutaj możesz zarządzać ustawieniami aplikacji.",
+    "Notes": "Notatki",
+    "NoteTitlePlaceholder": "Tytuł tutaj...",
+    "ContentPlaceholder": "Wpisz treść tutaj...",
+    "Save": "Zapisz",
+    "Edit": "Edytuj",
+    "Delete": "Usuń",
+    "Close": "Zamknij",
+    "Share": "Udostępnij",
+    "Download": "Pobierz",
+    "Cancel": "Anuluj",
+    "NoteStats": "Statystyki Notatki",
+    "CharacterCount": "Liczba znaków",
+    "WordCount": "Liczba słów",
+    "MaxLimit": "Maksymalny limit",
+    "NewNoteTitle": "Nowa Notatka",
+    "AddNote": "Dodaj Notatkę",
+    "Language": "Język"
+  }
+  

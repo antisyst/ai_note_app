@@ -1,0 +1,28 @@
+{
+    "Home": "Início",
+    "Dashboard": "Painel",
+    "Explore": "Explorar",
+    "Settings": "Configurações",
+    "LoadingNotes": "Carregando notas...",
+    "SearchNotes": "Pesquisar notas...",
+    "SettingsTitle": "Configurações",
+    "SettingsDescription": "Aqui você pode gerenciar as configurações do aplicativo.",
+    "Notes": "Notas",
+    "NoteTitlePlaceholder": "Título aqui...",
+    "ContentPlaceholder": "Digite o conteúdo aqui...",
+    "Save": "Salvar",
+    "Edit": "Editar",
+    "Delete": "Excluir",
+    "Close": "Fechar",
+    "Share": "Compartilhar",
+    "Download": "Baixar",
+    "Cancel": "Cancelar",
+    "NoteStats": "Estatísticas da Nota",
+    "CharacterCount": "Contagem de Caracteres",
+    "WordCount": "Contagem de Palavras",
+    "MaxLimit": "Limite Máximo",
+    "NewNoteTitle": "Nova Nota",
+    "AddNote": "Adicionar Nota",
+    "Language": "Idioma"
+  }
+  

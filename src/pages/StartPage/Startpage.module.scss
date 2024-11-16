@@ -1,0 +1,40 @@
+.start-page-layout {
+    display: flex;
+    height: 98vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .get-started-button {
+        width: 94%;
+        height: 60px;
+        background: var(--wht);
+        border-radius: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--blck);
+        position: fixed;
+        bottom: 25px;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .start-page-content-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        h1 {
+            font-size: 42px;
+            margin: 0;
+        }
+
+        p {
+            text-align: center;
+        }
+    }
+}

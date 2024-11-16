@@ -20,5 +20,5 @@ export function Page({ children, back = true }: PropsWithChildren<{
     backButton.hide();
   }, [back]);
 
-  return <>{children}</>;
+  return <div className='page-layout'>{children}</div>;
 }

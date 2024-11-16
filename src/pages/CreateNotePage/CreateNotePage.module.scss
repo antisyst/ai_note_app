@@ -1,0 +1,111 @@
+.titleEditorContainer,
+  .editorContainer {
+    margin-top: 16px;
+  
+    div {
+      border-color: transparent;
+      outline: none;
+    }
+  }
+  
+  .titleEditor,
+  .editorContent {
+    border: none;
+    outline: none;
+  }
+
+  .editorContent {
+    padding-bottom: 70px;
+  }
+  
+  .titleEditorContainer {
+    width: 100%;
+  
+    .titleEditor {
+      width: 100%;
+  
+      p {
+        font-weight: bold;
+        font-size: 25px;
+      }
+    }
+  }
+  
+  .editorContainer {
+    width: 100%;
+    overflow-y: auto;
+  
+    .editorContent {
+      width: 100%;
+    }
+  }
+  
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 20;
+  }
+  
+  .modalContent {
+    width: 80%;
+    max-width: 400px;
+    background: rgb(10, 10, 10);
+    border-radius: 16px;
+    display: flex;
+    position: relative;
+    padding: 15px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+  
+    p {
+      font-size: 16px;
+      margin: 3px 0;
+  
+      span {
+        font-weight: 600;
+      }
+    }
+  
+    .closeModalButton {
+      cursor: pointer;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+    }
+  }
+  
+  .is-editor-empty:first-child::before {
+    color: var(--wht);
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+  
+  
+  .scrollContainer {
+    overflow-y: auto;
+    height: calc(100vh - 60px); 
+  }
+
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #adb5bd;
+    pointer-events: none;
+    height: 0;
+  }

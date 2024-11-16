@@ -1,0 +1,27 @@
+.toolbar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.7);
+    width: 100%;
+    left: 0;
+    height: 50px;
+    z-index: 10;
+  
+    button {
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease-out;
+      font-weight: 500;
+      border-radius: 16px;
+      padding: 3px 8px;
+  
+      &.activeButton {
+        background: var(--wht);
+        color: var(--blck);
+      }
+    }
+  }
+  

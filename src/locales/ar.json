@@ -1,0 +1,28 @@
+{
+    "Home": "الرئيسية",
+    "Dashboard": "لوحة التحكم",
+    "Explore": "استكشاف",
+    "Settings": "الإعدادات",
+    "LoadingNotes": "جارٍ تحميل الملاحظات...",
+    "SearchNotes": "البحث في الملاحظات...",
+    "SettingsTitle": "الإعدادات",
+    "SettingsDescription": "هنا يمكنك إدارة إعدادات التطبيق.",
+    "Notes": "الملاحظات",
+    "NoteTitlePlaceholder": "العنوان هنا...",
+    "ContentPlaceholder": "اكتب المحتوى هنا...",
+    "Save": "حفظ",
+    "Edit": "تعديل",
+    "Delete": "حذف",
+    "Close": "إغلاق",
+    "Share": "مشاركة",
+    "Download": "تحميل",
+    "Cancel": "إلغاء",
+    "NoteStats": "إحصائيات الملاحظة",
+    "CharacterCount": "عدد الأحرف",
+    "WordCount": "عدد الكلمات",
+    "MaxLimit": "الحد الأقصى",
+    "NewNoteTitle": "ملاحظة جديدة",
+    "AddNote": "إضافة ملاحظة",
+    "Language": "اللغة"
+  }
+  

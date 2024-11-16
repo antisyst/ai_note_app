@@ -1,0 +1,28 @@
+{
+    "Home": "Hjem",
+    "Dashboard": "Dashbord",
+    "Explore": "Utforsk",
+    "Settings": "Innstillinger",
+    "LoadingNotes": "Laster inn notater...",
+    "SearchNotes": "Søk i notater...",
+    "SettingsTitle": "Innstillinger",
+    "SettingsDescription": "Her kan du administrere appens innstillinger.",
+    "Notes": "Notater",
+    "NoteTitlePlaceholder": "Tittel her...",
+    "ContentPlaceholder": "Skriv innhold her...",
+    "Save": "Lagre",
+    "Edit": "Rediger",
+    "Delete": "Slett",
+    "Close": "Lukk",
+    "Share": "Del",
+    "Download": "Last ned",
+    "Cancel": "Avbryt",
+    "NoteStats": "Notatstatistikk",
+    "CharacterCount": "Antall tegn",
+    "WordCount": "Antall ord",
+    "MaxLimit": "Maksgrense",
+    "NewNoteTitle": "Nytt Notat",
+    "AddNote": "Legg til Notat",
+    "Language": "Språk"
+  }
+  

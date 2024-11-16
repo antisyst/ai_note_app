@@ -1,0 +1,55 @@
+.settingsPage {
+    .settingsHeader {
+        display: flex;
+        flex-direction: column;
+        padding-top: 15px;
+        align-items: flex-start;
+        justify-content: flex-start;
+        transition: opacity 0.2s ease;
+
+        h1 {
+            font-weight: 600;
+            font-size: 25px;
+        }
+    }
+
+    .settingsLayout {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        margin-top: 16px;
+        gap: 20px;
+
+        .settingsLang {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 6px;
+            width: 100%;
+
+            .settingsLangLabel {
+                font-weight: 600;
+            }
+        }
+    }
+
+    .saveButton {
+        width: 90%;
+        height: 60px;
+        background: var(--wht);
+        border-radius: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--blck);
+        position: fixed;
+        bottom: 65px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 17px;
+        font-weight: 600;
+    }
+}

@@ -1,0 +1,75 @@
+.noteHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-direction: row;
+    padding: 15px 0;
+
+    .noteHeaderTools {
+        display: flex;
+        gap: 12px;
+        flex-direction: row;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+  
+        .noteHeaderToolRow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-out;
+            gap: 14px;
+
+            .cancelButton {
+                font-weight: 600;
+            }
+        }
+      }
+    
+    .backButton,
+    .infoButton,
+    .editButton,
+    .undoButton,
+    .redoButton,
+    .saveButton {
+      font-weight: 600;
+      transition: all 0.2s ease-out;
+    }
+  }
+
+  .microphoneButton {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    transition: all 0.3s ease-in-out;
+
+    &.active {
+      background: var(--wht);
+    }
+}
+
+.visualizerContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+
+    .currentSpeechLanguage {
+      position: absolute;
+      content: "";
+      right: -25px;
+      font-size: 14px;
+    }
+}
+
+.saveButton:disabled,
+.saveButton[disabled]{
+  pointer-events: none;
+  opacity: 0.5;
+}

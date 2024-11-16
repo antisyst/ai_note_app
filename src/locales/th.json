@@ -1,0 +1,28 @@
+{
+    "Home": "หน้าแรก",
+    "Dashboard": "แดชบอร์ด",
+    "Explore": "สำรวจ",
+    "Settings": "การตั้งค่า",
+    "LoadingNotes": "กำลังโหลดโน้ต...",
+    "SearchNotes": "ค้นหาโน้ต...",
+    "SettingsTitle": "การตั้งค่า",
+    "SettingsDescription": "ที่นี่คุณสามารถจัดการการตั้งค่าแอป",
+    "Notes": "โน้ต",
+    "NoteTitlePlaceholder": "หัวข้อที่นี่...",
+    "ContentPlaceholder": "พิมพ์เนื้อหาที่นี่...",
+    "Save": "บันทึก",
+    "Edit": "แก้ไข",
+    "Delete": "ลบ",
+    "Close": "ปิด",
+    "Share": "แชร์",
+    "Download": "ดาวน์โหลด",
+    "Cancel": "ยกเลิก",
+    "NoteStats": "สถิติ โน้ต",
+    "CharacterCount": "จำนวนอักขระ",
+    "WordCount": "จำนวนคำ",
+    "MaxLimit": "ขีด จำกัด สูงสุด",
+    "NewNoteTitle": "โน้ตใหม่",
+    "AddNote": "เพิ่มโน้ต",
+    "Language": "ภาษา"
+  }
+  

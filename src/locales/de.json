@@ -1,0 +1,28 @@
+{
+    "Home": "Startseite",
+    "Dashboard": "Armaturenbrett",
+    "Explore": "Entdecken",
+    "Settings": "Einstellungen",
+    "LoadingNotes": "Notizen werden geladen...",
+    "SearchNotes": "Notizen durchsuchen...",
+    "SettingsTitle": "Einstellungen",
+    "SettingsDescription": "Hier können Sie die App-Einstellungen verwalten.",
+    "Notes": "Notizen",
+    "NoteTitlePlaceholder": "Titel hier...",
+    "ContentPlaceholder": "Geben Sie hier den Inhalt ein...",
+    "Save": "Speichern",
+    "Edit": "Bearbeiten",
+    "Delete": "Löschen",
+    "Close": "Schließen",
+    "Share": "Teilen",
+    "Download": "Herunterladen",
+    "Cancel": "Abbrechen",
+    "NoteStats": "Notizstatistik",
+    "CharacterCount": "Zeichenanzahl",
+    "WordCount": "Wortanzahl",
+    "MaxLimit": "Maximale Begrenzung",
+    "NewNoteTitle": "Neue Notiz",
+    "AddNote": "Notiz hinzufügen",
+    "Language": "Sprache"
+  }
+  

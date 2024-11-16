@@ -1,0 +1,28 @@
+{
+    "Home": "Kezdőlap",
+    "Dashboard": "Irányítópult",
+    "Explore": "Felfedezés",
+    "Settings": "Beállítások",
+    "LoadingNotes": "Jegyzetek betöltése...",
+    "SearchNotes": "Jegyzetek keresése...",
+    "SettingsTitle": "Beállítások",
+    "SettingsDescription": "Itt kezelheti az alkalmazás beállításait.",
+    "Notes": "Jegyzetek",
+    "NoteTitlePlaceholder": "Cím itt...",
+    "ContentPlaceholder": "Írja ide a tartalmat...",
+    "Save": "Mentés",
+    "Edit": "Szerkesztés",
+    "Delete": "Törlés",
+    "Close": "Bezárás",
+    "Share": "Megosztás",
+    "Download": "Letöltés",
+    "Cancel": "Mégse",
+    "NoteStats": "Jegyzet Statisztika",
+    "CharacterCount": "Karakterek száma",
+    "WordCount": "Szavak száma",
+    "MaxLimit": "Maximális korlát",
+    "NewNoteTitle": "Új Jegyzet",
+    "AddNote": "Jegyzet hozzáadása",
+    "Language": "Nyelv"
+  }
+  

@@ -1,0 +1,28 @@
+{
+    "Home": "Beranda",
+    "Dashboard": "Dasbor",
+    "Explore": "Jelajahi",
+    "Settings": "Pengaturan",
+    "LoadingNotes": "Memuat catatan...",
+    "SearchNotes": "Cari catatan...",
+    "SettingsTitle": "Pengaturan",
+    "SettingsDescription": "Di sini Anda dapat mengelola pengaturan aplikasi.",
+    "Notes": "Catatan",
+    "NoteTitlePlaceholder": "Judul di sini...",
+    "ContentPlaceholder": "Ketik konten di sini...",
+    "Save": "Simpan",
+    "Edit": "Edit",
+    "Delete": "Hapus",
+    "Close": "Tutup",
+    "Share": "Bagikan",
+    "Download": "Unduh",
+    "Cancel": "Batal",
+    "NoteStats": "Statistik Catatan",
+    "CharacterCount": "Jumlah Karakter",
+    "WordCount": "Jumlah Kata",
+    "MaxLimit": "Batas Maksimum",
+    "NewNoteTitle": "Catatan Baru",
+    "AddNote": "Tambah Catatan",
+    "Language": "Bahasa"
+  }
+  

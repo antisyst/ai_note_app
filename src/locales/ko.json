@@ -1,0 +1,28 @@
+{
+    "Home": "홈",
+    "Dashboard": "대시보드",
+    "Explore": "탐색",
+    "Settings": "설정",
+    "LoadingNotes": "노트 불러오는 중...",
+    "SearchNotes": "노트 검색...",
+    "SettingsTitle": "설정",
+    "SettingsDescription": "여기에서 앱 설정을 관리할 수 있습니다.",
+    "Notes": "노트",
+    "NoteTitlePlaceholder": "제목을 입력하세요...",
+    "ContentPlaceholder": "내용을 입력하세요...",
+    "Save": "저장",
+    "Edit": "편집",
+    "Delete": "삭제",
+    "Close": "닫기",
+    "Share": "공유",
+    "Download": "다운로드",
+    "Cancel": "취소",
+    "NoteStats": "노트 통계",
+    "CharacterCount": "문자 수",
+    "WordCount": "단어 수",
+    "MaxLimit": "최대 제한",
+    "NewNoteTitle": "새로운 노트",
+    "AddNote": "노트 추가",
+    "Language": "언어"
+  }
+  

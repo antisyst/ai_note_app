@@ -1,0 +1,28 @@
+{
+    "Home": "Ana Sayfa",
+    "Dashboard": "Gösterge Paneli",
+    "Explore": "Keşfet",
+    "Settings": "Ayarlar",
+    "LoadingNotes": "Notlar yükleniyor...",
+    "SearchNotes": "Notlarda ara...",
+    "SettingsTitle": "Ayarlar",
+    "SettingsDescription": "Buradan uygulama ayarlarını yönetebilirsiniz.",
+    "Notes": "Notlar",
+    "NoteTitlePlaceholder": "Başlık buraya...",
+    "ContentPlaceholder": "İçeriği buraya yazın...",
+    "Save": "Kaydet",
+    "Edit": "Düzenle",
+    "Delete": "Sil",
+    "Close": "Kapat",
+    "Share": "Paylaş",
+    "Download": "İndir",
+    "Cancel": "İptal",
+    "NoteStats": "Not İstatistikleri",
+    "CharacterCount": "Karakter Sayısı",
+    "WordCount": "Kelime Sayısı",
+    "MaxLimit": "Maksimum Limit",
+    "NewNoteTitle": "Yeni Not",
+    "AddNote": "Not Ekle",
+    "Language": "Dil"
+  }
+  
