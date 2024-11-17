@@ -323,8 +323,12 @@ export const CreateNotePage: FC = () => {
   useEffect(() => {
     const handleResize = () => {
       if (isMobile && window.visualViewport) {
-        const newKeyboardHeight = window.innerHeight - window.visualViewport.height;
-        setKeyboardHeight(isEditing ? (newKeyboardHeight > 0 ? newKeyboardHeight : 0) : 0);
+        const keyboardHeight = window.innerHeight - window.visualViewport.height;
+        if (isEditing && !isModalOpen) {
+          setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0);
+        } else {
+          setKeyboardHeight(0);
+        }
       }
     };
   
@@ -341,7 +345,7 @@ export const CreateNotePage: FC = () => {
         window.visualViewport.removeEventListener('scroll', handleResize);
       }
     };
-  }, [isEditing, isMobile]);
+  }, [isEditing, isModalOpen, isMobile]);  
   
   return (
     <Page back={true}>
