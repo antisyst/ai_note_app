@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
 import styles from './Toolbar.module.scss';
 import { motion } from 'framer-motion';
@@ -9,16 +9,35 @@ interface ToolbarProps {
   keyboardHeight: number;
 }
 
-export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, keyboardHeight }) => {
-  const [bottomPosition, setBottomPosition] = useState('20px');
+export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
+  const [bottomOffset, setBottomOffset] = useState(0);
 
   useEffect(() => {
-    if (isMobile) {
-      setBottomPosition(`${keyboardHeight > 0 ? keyboardHeight + 20 : 20}px`);
-    } else {
-      setBottomPosition('20px');
+    const handleViewportResize = () => {
+      if (isMobile && window.visualViewport) {
+        const keyboardHeight = window.visualViewport.height < window.innerHeight
+          ? window.innerHeight - window.visualViewport.height
+          : 0;
+        setBottomOffset(keyboardHeight);
+      } else {
+        setBottomOffset(0); // For desktop, keep it fixed at the bottom.
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      window.visualViewport.addEventListener('scroll', handleViewportResize);
     }
-  }, [isMobile, keyboardHeight]);
+
+    handleViewportResize();
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportResize);
+        window.visualViewport.removeEventListener('scroll', handleViewportResize);
+      }
+    };
+  }, [isMobile]);
 
   return (
     <motion.div
@@ -28,11 +47,11 @@ export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, keyboardHei
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.2, ease: 'easeInOut' }}
       style={{
-        bottom: bottomPosition,
-        position: 'fixed', // Ensure toolbar stays fixed on screen
+        position: 'fixed',
+        bottom: `${bottomOffset}px`,
         left: '0',
         right: '0',
-        zIndex: 1000, // Make sure it stays above other content
+        zIndex: 1000,
       }}
     >
       <button

@@ -321,6 +321,31 @@ export const CreateNotePage: FC = () => {
     }
   }, [generatedContent, contentEditor]);
   
+  useEffect(() => {
+  const handleResize = () => {
+    if (isMobile && window.visualViewport) {
+      const keyboardHeight = window.innerHeight - window.visualViewport.height;
+      setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0);
+    } else {
+      setKeyboardHeight(0);
+    }
+  };
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', handleResize);
+    window.visualViewport.addEventListener('scroll', handleResize);
+  }
+
+  handleResize();
+  return () => {
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', handleResize);
+      window.visualViewport.removeEventListener('scroll', handleResize);
+    }
+  };
+}, [isMobile]);
+
+
   return (
     <Page back={true}>
       <NoteHeader
