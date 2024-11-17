@@ -41,18 +41,18 @@ export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
 
   return (
     <motion.div
-      className={styles.toolbar}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.2, ease: 'easeInOut' }}
-      style={{
-        position: 'fixed',
-        bottom: `${bottomOffset}px`,
-        left: '0',
-        right: '0',
-        zIndex: 1000,
-      }}
+    className={styles.toolbar}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: bottomOffset }}
+    exit={{ opacity: 0, y: 20 }}
+    transition={{ duration: 0.3, ease: 'easeOut' }}
+    style={{
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1000,
+    }}
     >
       <button
         onClick={() => contentEditor?.chain().focus().toggleBold().run()}
