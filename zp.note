@@ -322,30 +322,33 @@ export const CreateNotePage: FC = () => {
     }
   }, [generatedContent, contentEditor]);
   
-    useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       if (isMobile && window.visualViewport) {
         const keyboardHeight = window.innerHeight - window.visualViewport.height;
-        setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0);
-      } else {
-        setKeyboardHeight(0);
+        if (isEditing && !isModalOpen) {
+          setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0);
+        } else {
+          setKeyboardHeight(0);
+        }
       }
     };
-
+  
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize);
       window.visualViewport.addEventListener('scroll', handleResize);
     }
-
+  
     handleResize();
+  
     return () => {
       if (window.visualViewport) {
         window.visualViewport.removeEventListener('resize', handleResize);
         window.visualViewport.removeEventListener('scroll', handleResize);
       }
     };
-  }, [isMobile]);
-
+  }, [isEditing, isModalOpen, isMobile]);  
+  
   return (
     <Page back={true}>
       <NoteHeader
@@ -513,6 +516,7 @@ Toolbar.tsx:
 
 import { FC, useState, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
+import { Bold, Italic, Strikethrough, Code, SquareDashedBottomCode, List } from 'lucide-react';
 import styles from './Toolbar.module.scss';
 import { motion } from 'framer-motion';
 
@@ -571,31 +575,37 @@ export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
         onClick={() => contentEditor?.chain().focus().toggleBold().run()}
         className={contentEditor?.isActive('bold') ? styles.activeButton : ''}
       >
-        Bold
+        <Bold/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleItalic().run()}
         className={contentEditor?.isActive('italic') ? styles.activeButton : ''}
       >
-        Italic
+        <Italic/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleStrike().run()}
         className={contentEditor?.isActive('strike') ? styles.activeButton : ''}
       >
-        Strike
+        <Strikethrough/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleCode().run()}
         className={contentEditor?.isActive('code') ? styles.activeButton : ''}
       >
-        Code
+        <Code/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleCodeBlock().run()}
         className={contentEditor?.isActive('codeBlock') ? styles.activeButton : ''}
       >
-        Code Block
+        <SquareDashedBottomCode/>
+      </button>
+      <button
+        onClick={() => contentEditor?.chain().focus().toggleBulletList().run()}
+        className={contentEditor?.isActive('bulletList') ? styles.activeButton : ''}
+      >
+        <List/>
       </button>
     </motion.div>
   );

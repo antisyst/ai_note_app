@@ -8,6 +8,12 @@
     width: 100%;
     outline: none;
     border: none;
+    height: 140px;
+    max-height: 140px;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 15px;
+    border: 1.2px solid rgba(18,18,18);
     margin-top: 10px;
     background: transparent;
     color: var(--wht);
@@ -16,20 +22,29 @@
 .modalActions {
     display: flex;
     width: 100%;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    margin-top: 5px;
+
+    .modalActionsRow {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        justify-content: flex-end;
+    }
 
     button {
-        height: 42px;
+        padding: 0 16px;
+        font-size: 15px;
         transition: all 0.2s ease-out;
     }
     
     .cancelButton {
         border: 1.5px solid rgba(18, 18, 18);
         background: var(--blck);
+        height: 40px;
         border-radius: 12px;
-        padding: 8px 16px;
         color: var(--wht);
 
         &:active {
@@ -41,9 +56,21 @@
     .generateButton {
         background: var(--wht);
         color: var(--blck);
-        border: 1.5px solid transparent;
+        height: 38px;
+        border: 1.5px solid rgba(18, 18, 18);
         border-radius: 12px;
-        padding: 8px 16px;
         transition: all 0.2s ease-in-out;
+    }
+}
+
+.counter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+
+    span {
+        font-size: 14px;
     }
 }

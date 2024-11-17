@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
+import { Bold, Italic, Strikethrough, Code, SquareDashedBottomCode, List } from 'lucide-react';
 import styles from './Toolbar.module.scss';
 import { motion } from 'framer-motion';
 
@@ -41,48 +42,54 @@ export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
 
   return (
     <motion.div
-    className={styles.toolbar}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: 20 }}
-    transition={{ duration: 0.2, ease: 'easeInOut' }}
-    style={{
-      position: 'fixed',
-      bottom: `${bottomOffset}px`,
-      left: '0',
-      right: '0',
-      zIndex: 1000,
+      className={styles.toolbar}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.2, ease: 'easeInOut' }}
+      style={{
+        position: 'fixed',
+        bottom: `${bottomOffset}px`,
+        left: '0',
+        right: '0',
+        zIndex: 1000,
       }}
     >
       <button
         onClick={() => contentEditor?.chain().focus().toggleBold().run()}
         className={contentEditor?.isActive('bold') ? styles.activeButton : ''}
       >
-        Bold
+        <Bold/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleItalic().run()}
         className={contentEditor?.isActive('italic') ? styles.activeButton : ''}
       >
-        Italic
+        <Italic/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleStrike().run()}
         className={contentEditor?.isActive('strike') ? styles.activeButton : ''}
       >
-        Strike
+        <Strikethrough/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleCode().run()}
         className={contentEditor?.isActive('code') ? styles.activeButton : ''}
       >
-        Code
+        <Code/>
       </button>
       <button
         onClick={() => contentEditor?.chain().focus().toggleCodeBlock().run()}
         className={contentEditor?.isActive('codeBlock') ? styles.activeButton : ''}
       >
-        Code Block
+        <SquareDashedBottomCode/>
+      </button>
+      <button
+        onClick={() => contentEditor?.chain().focus().toggleBulletList().run()}
+        className={contentEditor?.isActive('bulletList') ? styles.activeButton : ''}
+      >
+        <List/>
       </button>
     </motion.div>
   );

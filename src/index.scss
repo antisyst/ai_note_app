@@ -106,3 +106,16 @@ p {
 .page-layout {
   position: relative;
 }
+
+
+li::before {
+  content: "•";
+  color: var(--wht);
+  position: absolute;
+}
+
+li {
+  p {
+    padding-left: 13px;
+  }
+}

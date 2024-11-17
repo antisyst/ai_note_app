@@ -40,6 +40,7 @@ export const CreateNotePage: FC = () => {
   const [aiInput, setAiInput] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
+  const [isCanceled, setIsCanceled] = useState(false);
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   
@@ -268,6 +269,7 @@ export const CreateNotePage: FC = () => {
   const generateAIContent = async () => {
     if (!aiInput.trim()) return;
     setAiGenerating(true);
+    setIsCanceled(false);
   
     try {
       const response = await axios.post(
@@ -282,11 +284,16 @@ export const CreateNotePage: FC = () => {
           headers: {
             Authorization: `Bearer fXzcYyUOXqbUqzarYPhzFp2C21qGhj1V3orIzslW`,
             'Content-Type': 'application/json',
-          }
+          },
         }
       );
   
-      let generatedText = response.data.text.trim(); 
+      if (isCanceled) {
+        console.log('Generation canceled by user.');
+        return;
+      }
+  
+      let generatedText = response.data.text.trim();
       generatedText = generatedText.replace(/\n\n/g, '<p></p>');
   
       let animatedHTML = `
@@ -300,12 +307,20 @@ export const CreateNotePage: FC = () => {
       }
   
       setGeneratedContent((prevContent) => `${prevContent}\n\n${animatedHTML}`);
+  
+      setAiInput('');
     } catch (error) {
       console.error('Error generating AI content:', error);
     } finally {
       setAiGenerating(false);
       closeModal();
     }
+  };
+
+  const handleCancelGenerate = () => {
+    setIsCanceled(true);
+    setAiGenerating(false);
+    closeModal();
   };
 
   useEffect(() => {
@@ -382,7 +397,7 @@ export const CreateNotePage: FC = () => {
       )}
       <AIModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCancelGenerate}
         onGenerate={generateAIContent}
         aiInput={aiInput}
         setAiInput={setAiInput}
