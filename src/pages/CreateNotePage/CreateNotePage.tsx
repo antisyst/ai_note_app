@@ -374,7 +374,7 @@ export const CreateNotePage: FC = () => {
         <Toolbar
           contentEditor={contentEditor}
           isMobile={isMobile}
-          isEditing={isEditing}
+          keyboardHeight={keyboardHeight}
          />
       )}
       <AIModal

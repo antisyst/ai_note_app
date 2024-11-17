@@ -6,17 +6,19 @@ import { motion } from 'framer-motion';
 interface ToolbarProps {
   contentEditor: Editor | null;
   isMobile: boolean;
-  isEditing: boolean;
+  keyboardHeight: number;
 }
 
-export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, isEditing }) => {
+export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
   const [bottomOffset, setBottomOffset] = useState(0);
 
   useEffect(() => {
     const handleViewportResize = () => {
       if (isMobile && window.visualViewport) {
-        const keyboardHeight = window.innerHeight - window.visualViewport.height;
-        setBottomOffset(isEditing ? keyboardHeight : 0);
+        const keyboardHeight = window.visualViewport.height < window.innerHeight
+          ? window.innerHeight - window.visualViewport.height
+          : 0;
+        setBottomOffset(keyboardHeight);
       } else {
         setBottomOffset(0);
       }
@@ -35,15 +37,15 @@ export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, isEditing }
         window.visualViewport.removeEventListener('scroll', handleViewportResize);
       }
     };
-  }, [isMobile, isEditing]);
+  }, [isMobile]);
 
   return (
     <motion.div
       className={styles.toolbar}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isEditing ? 1 : 0, y: isEditing ? 0 : 20 }}
+      animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      transition={{ duration: 0.2, ease: 'easeInOut' }}
       style={{
         position: 'fixed',
         bottom: `${bottomOffset}px`,
