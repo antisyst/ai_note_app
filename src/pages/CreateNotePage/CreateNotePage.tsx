@@ -263,7 +263,12 @@ export const CreateNotePage: FC = () => {
   
 
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setKeyboardHeight(0);
+    setIsEditing(false);
+  };
+  
   
   const generateAIContent = async () => {
     if (!aiInput.trim()) return;
@@ -307,7 +312,6 @@ export const CreateNotePage: FC = () => {
       closeModal();
     }
   };
-  
 
   useEffect(() => {
     if (generatedContent) {
@@ -321,30 +325,29 @@ export const CreateNotePage: FC = () => {
     }
   }, [generatedContent, contentEditor]);
   
-  useEffect(() => {
-  const handleResize = () => {
-    if (isMobile && window.visualViewport) {
-      const keyboardHeight = window.innerHeight - window.visualViewport.height;
-      setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0);
-    } else {
-      setKeyboardHeight(0);
-    }
-  };
+    useEffect(() => {
+    const handleResize = () => {
+      if (isMobile && window.visualViewport) {
+        const keyboardHeight = window.innerHeight - window.visualViewport.height;
+        setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0);
+      } else {
+        setKeyboardHeight(0);
+      }
+    };
 
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', handleResize);
-    window.visualViewport.addEventListener('scroll', handleResize);
-  }
-
-  handleResize();
-  return () => {
     if (window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', handleResize);
-      window.visualViewport.removeEventListener('scroll', handleResize);
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize);
     }
-  };
-}, [isMobile]);
 
+    handleResize();
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
+      }
+    };
+  }, [isMobile]);
 
   return (
     <Page back={true}>
@@ -377,6 +380,7 @@ export const CreateNotePage: FC = () => {
           contentEditor={contentEditor}
           isMobile={isMobile}
           keyboardHeight={keyboardHeight}
+          isEditing={isEditing}
          />
       )}
       <AIModal

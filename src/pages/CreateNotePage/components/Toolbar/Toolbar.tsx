@@ -7,52 +7,39 @@ interface ToolbarProps {
   contentEditor: Editor | null;
   isMobile: boolean;
   keyboardHeight: number;
+  isEditing: boolean;
 }
 
-export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
+export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, keyboardHeight, isEditing }) => {
   const [bottomOffset, setBottomOffset] = useState(0);
 
   useEffect(() => {
-    const handleViewportResize = () => {
-      if (isMobile && window.visualViewport) {
-        const keyboardHeight = window.visualViewport.height < window.innerHeight
-          ? window.innerHeight - window.visualViewport.height
-          : 0;
-        setBottomOffset(keyboardHeight);
-      } else {
-        setBottomOffset(0); // For desktop, keep it fixed at the bottom.
-      }
-    };
+    if (isMobile) {
+      const handleResize = () => {
+        const newOffset = isEditing ? keyboardHeight : 0;
+        setBottomOffset(newOffset);
+      };
 
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleViewportResize);
-      window.visualViewport.addEventListener('scroll', handleViewportResize);
+      window.visualViewport?.addEventListener('resize', handleResize);
+      window.visualViewport?.addEventListener('scroll', handleResize);
+
+      handleResize();
+
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleResize);
+        window.visualViewport?.removeEventListener('scroll', handleResize);
+      };
+    } else {
+      setBottomOffset(0);
     }
-
-    handleViewportResize();
-
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleViewportResize);
-        window.visualViewport.removeEventListener('scroll', handleViewportResize);
-      }
-    };
-  }, [isMobile]);
+  }, [isMobile, keyboardHeight, isEditing]);
 
   return (
     <motion.div
       className={styles.toolbar}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.2, ease: 'easeInOut' }}
-      style={{
-        position: 'fixed',
-        bottom: `${bottomOffset}px`,
-        left: '0',
-        right: '0',
-        zIndex: 1000,
-      }}
+      initial={{ y: 20 }}
+      animate={{ y: -bottomOffset }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
       <button
         onClick={() => contentEditor?.chain().focus().toggleBold().run()}
