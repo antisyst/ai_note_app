@@ -24,7 +24,7 @@ export const AIModal: FC<AIModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <h2>{t('Generate AI Content')}</h2>
+      <h2 className={styles.generateContent}>{t('Generate AI Content')}</h2>
       <textarea
         value={aiInput}
         onChange={(e) => setAiInput(e.target.value)}
@@ -38,9 +38,9 @@ export const AIModal: FC<AIModalProps> = ({
         <button
           onClick={onGenerate}
           disabled={aiGenerating}
-          className={styles.okayButton}
+          className={styles.generateButton}
         >
-          {aiGenerating ? t('Generating...') : t('OKAY')}
+          {aiGenerating ? t('Generating...') : t('Generate')}
         </button>
       </div>
     </Modal>

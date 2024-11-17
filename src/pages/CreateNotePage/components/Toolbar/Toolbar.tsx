@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Editor } from '@tiptap/react';
 import styles from './Toolbar.module.scss';
 import { motion } from 'framer-motion';
@@ -10,16 +10,30 @@ interface ToolbarProps {
 }
 
 export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, keyboardHeight }) => {
+  const [bottomPosition, setBottomPosition] = useState('20px');
+
+  useEffect(() => {
+    if (isMobile) {
+      setBottomPosition(`${keyboardHeight > 0 ? keyboardHeight + 20 : 20}px`);
+    } else {
+      setBottomPosition('20px');
+    }
+  }, [isMobile, keyboardHeight]);
+
   return (
     <motion.div
-     className={styles.toolbar}
-     initial={{ opacity: 0, y: 20 }}
-     animate={{ opacity: 1, y: 0 }}
-     exit={{ opacity: 0, y: 20 }}
-     transition={{ duration: 0.2, ease: "easeInOut" }}
-     style={{
-        bottom: isMobile ? `${keyboardHeight}px` : '20px',
-     }}
+      className={styles.toolbar}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.2, ease: 'easeInOut' }}
+      style={{
+        bottom: bottomPosition,
+        position: 'fixed', // Ensure toolbar stays fixed on screen
+        left: '0',
+        right: '0',
+        zIndex: 1000, // Make sure it stays above other content
+      }}
     >
       <button
         onClick={() => contentEditor?.chain().focus().toggleBold().run()}
@@ -53,4 +67,4 @@ export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, keyboardHei
       </button>
     </motion.div>
   );
-}
+};

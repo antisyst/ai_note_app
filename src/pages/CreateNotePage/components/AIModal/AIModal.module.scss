@@ -1,0 +1,49 @@
+.generateContent {
+    font-size: 23px;
+    font-weight: bold;
+}
+
+.aiInput {
+    resize: none;
+    width: 100%;
+    outline: none;
+    border: none;
+    margin-top: 10px;
+    background: transparent;
+    color: var(--wht);
+}
+
+.modalActions {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+
+    button {
+        height: 42px;
+        transition: all 0.2s ease-out;
+    }
+    
+    .cancelButton {
+        border: 1.5px solid rgba(18, 18, 18);
+        background: var(--blck);
+        border-radius: 12px;
+        padding: 8px 16px;
+        color: var(--wht);
+
+        &:active {
+            background: rgba(18, 18, 18);
+            border: 1.5px solid rgba(18, 18, 18);
+        }
+    }
+
+    .generateButton {
+        background: var(--wht);
+        color: var(--blck);
+        border: 1.5px solid transparent;
+        border-radius: 12px;
+        padding: 8px 16px;
+        transition: all 0.2s ease-in-out;
+    }
+}

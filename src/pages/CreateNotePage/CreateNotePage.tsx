@@ -108,6 +108,22 @@ export const CreateNotePage: FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [titleEditor]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (isMobile) {
+        const newKeyboardHeight = window.innerHeight - document.documentElement.clientHeight;
+        setKeyboardHeight(newKeyboardHeight > 0 ? newKeyboardHeight : 0);
+      } else {
+        setKeyboardHeight(0);
+      }
+    };
+  
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+
   const handleUndo = useCallback(() => {
     if (history.length === 0) return;
 
