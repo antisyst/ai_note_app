@@ -6,40 +6,51 @@ import { motion } from 'framer-motion';
 interface ToolbarProps {
   contentEditor: Editor | null;
   isMobile: boolean;
-  keyboardHeight: number;
   isEditing: boolean;
 }
 
-export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, keyboardHeight, isEditing }) => {
+export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile, isEditing }) => {
   const [bottomOffset, setBottomOffset] = useState(0);
 
   useEffect(() => {
-    if (isMobile) {
-      const handleResize = () => {
-        const newOffset = isEditing ? keyboardHeight : 0;
-        setBottomOffset(newOffset);
-      };
+    const handleViewportResize = () => {
+      if (isMobile && window.visualViewport) {
+        const keyboardHeight = window.innerHeight - window.visualViewport.height;
+        setBottomOffset(isEditing ? keyboardHeight : 0);
+      } else {
+        setBottomOffset(0);
+      }
+    };
 
-      window.visualViewport?.addEventListener('resize', handleResize);
-      window.visualViewport?.addEventListener('scroll', handleResize);
-
-      handleResize();
-
-      return () => {
-        window.visualViewport?.removeEventListener('resize', handleResize);
-        window.visualViewport?.removeEventListener('scroll', handleResize);
-      };
-    } else {
-      setBottomOffset(0);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      window.visualViewport.addEventListener('scroll', handleViewportResize);
     }
-  }, [isMobile, keyboardHeight, isEditing]);
+
+    handleViewportResize();
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportResize);
+        window.visualViewport.removeEventListener('scroll', handleViewportResize);
+      }
+    };
+  }, [isMobile, isEditing]);
 
   return (
     <motion.div
       className={styles.toolbar}
-      initial={{ y: 20 }}
-      animate={{ y: -bottomOffset }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: isEditing ? 1 : 0, y: isEditing ? 0 : 20 }}
+      exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
+      style={{
+        position: 'fixed',
+        bottom: `${bottomOffset}px`,
+        left: '0',
+        right: '0',
+        zIndex: 1000,
+      }}
     >
       <button
         onClick={() => contentEditor?.chain().focus().toggleBold().run()}

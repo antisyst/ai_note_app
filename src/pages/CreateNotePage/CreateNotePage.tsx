@@ -263,12 +263,7 @@ export const CreateNotePage: FC = () => {
   
 
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setKeyboardHeight(0);
-    setIsEditing(false);
-  };
-  
+  const closeModal = () => setIsModalOpen(false);
   
   const generateAIContent = async () => {
     if (!aiInput.trim()) return;
@@ -379,7 +374,6 @@ export const CreateNotePage: FC = () => {
         <Toolbar
           contentEditor={contentEditor}
           isMobile={isMobile}
-          keyboardHeight={keyboardHeight}
           isEditing={isEditing}
          />
       )}
