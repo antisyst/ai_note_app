@@ -107,7 +107,7 @@ export const CreateNotePage: FC = () => {
 
   useEffect(() => {
     if (titleEditor) {
-      titleEditor.commands.focus('end');
+      titleEditor.commands.focus('start');
     }
 
     const handleResize = () => {
