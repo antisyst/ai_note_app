@@ -2,7 +2,7 @@ import ReactDOM from 'react-dom';
 import { FC, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Page } from '../../components/Page';
-import { EditorContent, useEditor } from '@tiptap/react';
+import { EditorContent, useEditor, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import CodeBlock from '@tiptap/extension-code-block';
@@ -41,17 +41,22 @@ export const CreateNotePage: FC = () => {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
   const [isCanceled, setIsCanceled] = useState(false);
-  
+  const controllerRef = useRef<AbortController | null>(null);
+  const titleEditorRef = useRef<Editor | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   
 
   const speechLanguage = (localStorage.getItem('speechLanguage') || 'en-US').split('-')[0].toUpperCase();
 
   const titleEditor = useEditor({
-    extensions: [StarterKit, Placeholder.configure({
-       placeholder: 'Title',
-       emptyNodeClass:
-       'first:before:text-gray-400 first:before:float-left first:before:content-[attr(data-placeholder)] first:before:h-0', })],
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder: 'Title',
+        emptyNodeClass:
+          'first:before:text-gray-400 first:before:float-left first:before:content-[attr(data-placeholder)] first:before:h-0',
+      }),
+    ],
     content: title,
     editable: isEditing,
     onUpdate: ({ editor }) => {
@@ -62,7 +67,16 @@ export const CreateNotePage: FC = () => {
         setRedoStack([]);
       });
     },
+    onCreate: ({ editor }) => {
+      titleEditorRef.current = editor;
+    },
   });
+
+  useEffect(() => {
+    if (titleEditorRef.current) {
+      titleEditorRef.current.commands.focus('end');
+    }
+  }, [titleEditorRef.current]);
 
   const contentEditor = useEditor({
     extensions: [
@@ -263,14 +277,26 @@ export const CreateNotePage: FC = () => {
   
   
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = () => {
+    setAiInput('');
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setAiInput('');
+    setIsModalOpen(false);
+  };  
   
   const generateAIContent = async () => {
     if (!aiInput.trim()) return;
+
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    const signal = controller.signal;
+
     setAiGenerating(true);
     setIsCanceled(false);
-  
+
     try {
       const response = await axios.post(
         'https://api.cohere.ai/generate',
@@ -285,32 +311,33 @@ export const CreateNotePage: FC = () => {
             Authorization: `Bearer fXzcYyUOXqbUqzarYPhzFp2C21qGhj1V3orIzslW`,
             'Content-Type': 'application/json',
           },
+          signal,
         }
       );
-  
+
       if (isCanceled) {
         console.log('Generation canceled by user.');
         return;
       }
-  
+
       let generatedText = response.data.text.trim();
       generatedText = generatedText.replace(/\n\n/g, '<p></p>');
-  
-      let animatedHTML = `
-        <div class="ai-content" style="opacity: 0; transform: translateY(20px); transition: all 0.5s ease-out;">
-          ${generatedText}
-        </div>
-      `;
-  
-      if (animatedHTML.length > 30000) {
-        animatedHTML = `${animatedHTML.slice(0, 30000)}...`;
+
+      if (generatedText.length > 30000) {
+        generatedText = `${generatedText.slice(0, 30000)}...`;
       }
-  
-      setGeneratedContent((prevContent) => `${prevContent}\n\n${animatedHTML}`);
-  
+
+      const updatedContent = `${content}\n\n${generatedText}`;
+      setContent(updatedContent);
+      contentEditor?.commands.setContent(updatedContent);
+
       setAiInput('');
     } catch (error) {
-      console.error('Error generating AI content:', error);
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+      } else {
+        console.error('Error generating AI content:', error);
+      }
     } finally {
       setAiGenerating(false);
       closeModal();
@@ -319,21 +346,25 @@ export const CreateNotePage: FC = () => {
 
   const handleCancelGenerate = () => {
     setIsCanceled(true);
+    controllerRef.current?.abort();
+    controllerRef.current = null;
     setAiGenerating(false);
     closeModal();
   };
+
 
   useEffect(() => {
     if (generatedContent) {
       const safeContent = `${content}\n\n${generatedContent}`;
       if (safeContent.length > 30000) {
         console.warn('Content length exceeds maximum allowed size.');
+        console.log(setGeneratedContent);
       } else {
         setContent(safeContent);
         contentEditor?.commands.setContent(safeContent); 
       }
     }
-  }, [generatedContent, contentEditor]);
+  }, [generatedContent, contentEditor]);  
   
   useEffect(() => {
     const handleResize = () => {

@@ -42,6 +42,8 @@ export const CreateNotePage: FC = () => {
   const [aiInput, setAiInput] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
+  const [isCanceled, setIsCanceled] = useState(false);
+  const controllerRef = useRef<AbortController | null>(null);
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   
@@ -264,13 +266,26 @@ export const CreateNotePage: FC = () => {
   
   
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = () => {
+    setAiInput('');
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setAiInput('');
+    setIsModalOpen(false);
+  };  
   
   const generateAIContent = async () => {
     if (!aiInput.trim()) return;
+
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    const signal = controller.signal;
+
     setAiGenerating(true);
-  
+    setIsCanceled(false);
+
     try {
       const response = await axios.post(
         'https://api.cohere.ai/generate',
@@ -284,43 +299,61 @@ export const CreateNotePage: FC = () => {
           headers: {
             Authorization: `Bearer fXzcYyUOXqbUqzarYPhzFp2C21qGhj1V3orIzslW`,
             'Content-Type': 'application/json',
-          }
+          },
+          signal,
         }
       );
-  
-      let generatedText = response.data.text.trim(); 
-      generatedText = generatedText.replace(/\n\n/g, '<p></p>');
-  
-      let animatedHTML = `
-        <div class="ai-content" style="opacity: 0; transform: translateY(20px); transition: all 0.5s ease-out;">
-          ${generatedText}
-        </div>
-      `;
-  
-      if (animatedHTML.length > 30000) {
-        animatedHTML = `${animatedHTML.slice(0, 30000)}...`;
+
+      if (isCanceled) {
+        console.log('Generation canceled by user.');
+        return;
       }
-  
-      setGeneratedContent((prevContent) => `${prevContent}\n\n${animatedHTML}`);
+
+      let generatedText = response.data.text.trim();
+      generatedText = generatedText.replace(/\n\n/g, '<p></p>');
+
+      if (generatedText.length > 30000) {
+        generatedText = `${generatedText.slice(0, 30000)}...`;
+      }
+
+      const updatedContent = `${content}\n\n${generatedText}`;
+      setContent(updatedContent);
+      contentEditor?.commands.setContent(updatedContent);
+
+      setAiInput('');
     } catch (error) {
-      console.error('Error generating AI content:', error);
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+      } else {
+        console.error('Error generating AI content:', error);
+      }
     } finally {
       setAiGenerating(false);
       closeModal();
     }
   };
 
+  const handleCancelGenerate = () => {
+    setIsCanceled(true);
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    setAiGenerating(false);
+    closeModal();
+  };
+
+
   useEffect(() => {
     if (generatedContent) {
       const safeContent = `${content}\n\n${generatedContent}`;
       if (safeContent.length > 30000) {
         console.warn('Content length exceeds maximum allowed size.');
+        console.log(setGeneratedContent);
       } else {
         setContent(safeContent);
         contentEditor?.commands.setContent(safeContent); 
       }
     }
-  }, [generatedContent, contentEditor]);
+  }, [generatedContent, contentEditor]);  
   
   useEffect(() => {
     const handleResize = () => {
@@ -384,7 +417,7 @@ export const CreateNotePage: FC = () => {
       )}
       <AIModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCancelGenerate}
         onGenerate={generateAIContent}
         aiInput={aiInput}
         setAiInput={setAiInput}
@@ -613,8 +646,9 @@ export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
 
 AIModal.tsx:
 
-import { FC } from 'react';
-import { useTranslation } from 'react-i18next';
+import { FC, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Timer } from 'lucide-react';
 import Modal from '@/components/Modal/Modal';
 import styles from './AIModal.module.scss';
 
@@ -635,28 +669,71 @@ export const AIModal: FC<AIModalProps> = ({
   setAiInput,
   aiGenerating,
 }) => {
-  const { t } = useTranslation();
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (aiGenerating) {
+      setElapsedTime(0);
+      const startTime = Date.now();
+
+      interval = setInterval(() => {
+        const now = Date.now();
+        setElapsedTime(now - startTime); 
+      }, 10);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [aiGenerating]);
+
+  const formattedTime = (elapsedTime / 1000).toFixed(2);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <h2 className={styles.generateContent}>{t('Generate AI Content')}</h2>
+      <div className={styles.modalHeader}>
+        <h2 className={styles.generateContent}>Generate AI Content</h2>
+      </div>
       <textarea
         value={aiInput}
         onChange={(e) => setAiInput(e.target.value)}
-        placeholder={t('Type your topic or question...')}
+        placeholder="Type your topic or question..."
         className={styles.aiInput}
       />
       <div className={styles.modalActions}>
-        <button onClick={onClose} className={styles.cancelButton}>
-          {t('Cancel')}
-        </button>
-        <button
-          onClick={onGenerate}
-          disabled={aiGenerating}
-          className={styles.generateButton}
-        >
-          {aiGenerating ? t('Generating...') : t('Generate')}
-        </button>
+        <div className={styles.modalActionsRow}>
+          <AnimatePresence>
+            {aiGenerating && (
+              <motion.div
+                key="animated-counter"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className={styles.counterContainer}
+              >
+                <p className={styles.counter}>
+                  <Timer size={20}/> 
+                  <span>{formattedTime}s</span>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <div className={styles.modalActionsRow}>
+          <button onClick={onClose} className={styles.cancelButton}>
+            Cancel
+          </button>
+          <button
+            onClick={onGenerate}
+            disabled={aiGenerating}
+            className={styles.generateButton}
+          >
+            {aiGenerating ? 'Generating...' : 'Generate'}
+          </button>
+        </div>
       </div>
     </Modal>
   );

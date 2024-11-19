@@ -1,6 +1,7 @@
 .dropdownContainer {
     position: relative;
     width: 70%;
+    user-select: none;
 
     .dropdownButton {
         padding: 12px 8px 12px 15px;
