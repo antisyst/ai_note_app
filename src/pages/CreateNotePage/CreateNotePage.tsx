@@ -41,10 +41,11 @@ export const CreateNotePage: FC = () => {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
   const [isCanceled, setIsCanceled] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const titleEditorRef = useRef<Editor | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  
+
 
   const speechLanguage = (localStorage.getItem('speechLanguage') || 'en-US').split('-')[0].toUpperCase();
 
@@ -71,25 +72,18 @@ export const CreateNotePage: FC = () => {
     },
     onCreate: ({ editor }) => {
       titleEditorRef.current = editor;
+      setIsReady(true);
     },
   });
 
   useEffect(() => {
-    const focusEditor = () => {
-      if (titleEditor && titleEditor.commands) {
+    if (isReady && titleEditor) {
+      const timeout = setTimeout(() => {
         titleEditor.commands.focus('end');
-      }
-    };
-
-    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-    if (isiOS) {
-      setTimeout(() => focusEditor(), 100);
-    } else {
-      focusEditor();
+      }, 300); // Slight delay to ensure focus works on mobile
+      return () => clearTimeout(timeout);
     }
-  }, [titleEditor]);
-
+  }, [isReady, titleEditor]);
   const contentEditor = useEditor({
     extensions: [
       StarterKit,
