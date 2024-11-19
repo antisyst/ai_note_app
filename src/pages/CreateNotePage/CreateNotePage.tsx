@@ -75,10 +75,20 @@ export const CreateNotePage: FC = () => {
   });
 
   useEffect(() => {
-    if (titleEditorRef.current) {
-      titleEditorRef.current.commands.focus('end');
+    const focusEditor = () => {
+      if (titleEditor && titleEditor.commands) {
+        titleEditor.commands.focus('end');
+      }
+    };
+
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isiOS) {
+      setTimeout(() => focusEditor(), 100);
+    } else {
+      focusEditor();
     }
-  }, [titleEditorRef.current]);
+  }, [titleEditor]);
 
   const contentEditor = useEditor({
     extensions: [
