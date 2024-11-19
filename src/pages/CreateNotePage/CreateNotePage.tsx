@@ -124,6 +124,27 @@ export const CreateNotePage: FC = () => {
   }, [titleEditor]);
 
   useEffect(() => {
+    // Create a dummy input to trigger focus in iOS
+    const dummyInput = document.createElement('input');
+    dummyInput.style.position = 'absolute';
+    dummyInput.style.opacity = '0';
+    dummyInput.style.height = '0';
+    dummyInput.style.width = '0';
+    document.body.appendChild(dummyInput);
+  
+    dummyInput.focus();
+    setTimeout(() => {
+      dummyInput.remove();
+      if (titleEditor) {
+        titleEditor.commands.focus('start');
+      }
+    }, 100);
+  
+    return () => dummyInput.remove(); 
+  }, [titleEditor]);
+  
+
+  useEffect(() => {
     const handleResize = () => {
       if (isMobile) {
         const newKeyboardHeight = window.innerHeight - document.documentElement.clientHeight;
