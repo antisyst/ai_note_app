@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import { FC, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Page } from '../../components/Page';
-import { EditorContent, useEditor } from '@tiptap/react';
+import { EditorContent, useEditor, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import CodeBlock from '@tiptap/extension-code-block';
@@ -44,17 +44,21 @@ export const CreateNotePage: FC = () => {
   const [generatedContent, setGeneratedContent] = useState('');
   const [isCanceled, setIsCanceled] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
-  
+  const titleEditorRef = useRef<Editor | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   
 
   const speechLanguage = (localStorage.getItem('speechLanguage') || 'en-US').split('-')[0].toUpperCase();
 
   const titleEditor = useEditor({
-    extensions: [StarterKit, Placeholder.configure({
-       placeholder: 'Title',
-       emptyNodeClass:
-       'first:before:text-gray-400 first:before:float-left first:before:content-[attr(data-placeholder)] first:before:h-0', })],
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder: 'Title',
+        emptyNodeClass:
+          'first:before:text-gray-400 first:before:float-left first:before:content-[attr(data-placeholder)] first:before:h-0',
+      }),
+    ],
     content: title,
     editable: isEditing,
     onUpdate: ({ editor }) => {
@@ -65,7 +69,16 @@ export const CreateNotePage: FC = () => {
         setRedoStack([]);
       });
     },
+    onCreate: ({ editor }) => {
+      titleEditorRef.current = editor;
+    },
   });
+
+  useEffect(() => {
+    if (titleEditorRef.current) {
+      titleEditorRef.current.commands.focus('end');
+    }
+  }, [titleEditorRef.current]);
 
   const contentEditor = useEditor({
     extensions: [
@@ -96,7 +109,7 @@ export const CreateNotePage: FC = () => {
 
   useEffect(() => {
     if (titleEditor) {
-      titleEditor.commands.focus('end');
+      titleEditor.commands.focus('start');
     }
 
     const handleResize = () => {
@@ -111,6 +124,17 @@ export const CreateNotePage: FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [titleEditor]);
+
+  useEffect(() => {
+    const focusTimeout = setTimeout(() => {
+      if (titleEditor) {
+        titleEditor.commands.focus('start');
+      }
+    }, 100);
+  
+    return () => clearTimeout(focusTimeout);
+  }, [titleEditor]);
+  
 
   useEffect(() => {
     const handleResize = () => {

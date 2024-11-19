@@ -60,6 +60,8 @@ export const CreateNotePage: FC = () => {
     content: title,
     editable: isEditing,
     onUpdate: ({ editor }) => {
+      titleEditorRef.current = editor;
+      editor.commands.focus('start');
       const text = editor.getText();
       ReactDOM.unstable_batchedUpdates(() => {
         setHistory((prev) => [...prev, { type: 'title', content: title }]);
