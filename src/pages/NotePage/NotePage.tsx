@@ -10,9 +10,12 @@ import {
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Code from '@tiptap/extension-code';
+import { generateAIContentService } from '@/services/apiService';
+import { AIModal } from '../CreateNotePage/components/AIModal/AIModal';
 import CodeBlock from '@tiptap/extension-code-block';
 import { isMobile } from 'react-device-detect';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import styles from './NotePage.module.scss';
 
 const MAX_CHARACTERS = 3000;
@@ -37,20 +40,35 @@ export const NotePage: FC = () => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [aiInput, setAiInput] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [isCanceled, setIsCanceled] = useState(false);
+  const controllerRef = useRef<AbortController | null>(null);
+
+
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-   useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Element | null; 
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target) &&
+        !(target?.closest(`.${styles.moreButton}`))
+      ) {
         setIsDropdownOpen(false);
       }
     };
+  
     document.addEventListener('pointerdown', handleClickOutside);
     return () => {
       document.removeEventListener('pointerdown', handleClickOutside);
     };
   }, []);
+  
 
   useEffect(() => {
     const handleResize = () => {
@@ -212,8 +230,88 @@ export const NotePage: FC = () => {
   };
 
   const handleDropdownToggle = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+    setIsDropdownOpen((prevState) => !prevState);
   };
+
+  useEffect(() => {
+    if (generatedContent && generatedContent.length <= 100000) {
+      contentEditor?.commands.setContent(generatedContent);
+    }
+  }, [generatedContent]);
+
+  const openModal = () => {
+    setAiInput('');
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setAiInput('');
+    setIsModalOpen(false);
+  };  
+  
+  const generateAIContent = async () => {
+    if (!aiInput.trim()) return;
+  
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    const signal = controller.signal;
+  
+    setAiGenerating(true);
+    setIsCanceled(false);
+  
+    try {
+      let generatedText = await generateAIContentService(aiInput, signal);
+  
+      if (isCanceled) {
+        console.log('Generation canceled by user.');
+        return;
+      }
+  
+      generatedText = generatedText.replace(/\n\n/g, '<p></p>');
+  
+      if (generatedText.length > 30000) {
+        generatedText = `${generatedText.slice(0, 30000)}...`;
+      }
+  
+      const updatedContent = `${content}\n\n${generatedText}`;
+  
+      contentEditor?.commands.setContent(updatedContent);
+      setContent(updatedContent);
+  
+      setAiInput('');
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+      } else {
+        console.error('Error generating AI content:', error);
+      }
+    } finally {
+      setAiGenerating(false);
+      closeModal();
+    }
+  };  
+
+  const handleCancelGenerate = () => {
+    setIsCanceled(true);
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    setAiGenerating(false);
+    closeModal();
+  };
+
+
+  useEffect(() => {
+    if (generatedContent) {
+      const safeContent = `${content}\n\n${generatedContent}`;
+      if (safeContent.length > 30000) {
+        console.warn('Content length exceeds maximum allowed size.');
+        console.log(setGeneratedContent);
+      } else {
+        setContent(safeContent);
+        contentEditor?.commands.setContent(safeContent); 
+      }
+    }
+  }, [generatedContent, contentEditor]);  
   
   return (
     <Page back={false}>
@@ -241,18 +339,14 @@ export const NotePage: FC = () => {
                 <button onClick={() => handleEditMode('content')} className={styles.editButton}>
                    {t('Edit')}
                 </button>
-                <div onClick={handleDropdownToggle} className={styles.moreButton}>
-                    <motion.div
-                      initial={{ rotate: 0 }}
-                      animate={{ rotate: isDropdownOpen ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {isDropdownOpen ? (
-                        <X color="var(--wht)" size={22} strokeWidth={1.8} />
-                      ) : (
-                        <EllipsisVertical color="var(--wht)" size={22} strokeWidth={1.8} />
-                      )}
-                    </motion.div>
+                <div className={styles.moreButton}>     
+                <button onClick={handleDropdownToggle} className={styles.moreButton}>
+                  {isDropdownOpen ? (
+                    <X color="var(--wht)" size={22} strokeWidth={1.8} />
+                  ) : (
+                    <EllipsisVertical color="var(--wht)" size={22} strokeWidth={1.8} />
+                  )}
+                </button>
                   {isDropdownOpen && (
                     <AnimatePresence>
                       <motion.div
@@ -296,6 +390,9 @@ export const NotePage: FC = () => {
                 transition={{ duration: 0.2 }}
                 className={styles.editModeTools}
               >
+                <button onClick={openModal} className={styles.aiButton} >
+                  AI
+                </button>
                 <button onClick={handleUndo} className={styles.undoButton} disabled={history.length === 0}>
                   <Undo2 />
                 </button>
@@ -382,6 +479,14 @@ export const NotePage: FC = () => {
           </motion.div>
         </div>
       )}
+      <AIModal
+        isOpen={isModalOpen}
+        onClose={handleCancelGenerate}
+        onGenerate={generateAIContent}
+        aiInput={aiInput}
+        setAiInput={setAiInput}
+        aiGenerating={aiGenerating}
+      />
     </Page>
   );
 };

@@ -7,6 +7,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import CodeBlock from '@tiptap/extension-code-block';
 import styles from './CreateNotePage.module.scss';
+import { generateAIContentService } from '@/services/apiService';
 import Code from '@tiptap/extension-code';
 import { NoteHeader } from './components/NoteHeader/NoteHeader';
 import { Toolbar } from './components/Toolbar/Toolbar';
@@ -41,11 +42,10 @@ export const CreateNotePage: FC = () => {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
   const [isCanceled, setIsCanceled] = useState(false);
-  const [isReady, setIsReady] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const titleEditorRef = useRef<Editor | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-
+  
 
   const speechLanguage = (localStorage.getItem('speechLanguage') || 'en-US').split('-')[0].toUpperCase();
 
@@ -61,8 +61,6 @@ export const CreateNotePage: FC = () => {
     content: title,
     editable: isEditing,
     onUpdate: ({ editor }) => {
-      titleEditorRef.current = editor;
-      editor.commands.focus('start');
       const text = editor.getText();
       ReactDOM.unstable_batchedUpdates(() => {
         setHistory((prev) => [...prev, { type: 'title', content: title }]);
@@ -72,18 +70,15 @@ export const CreateNotePage: FC = () => {
     },
     onCreate: ({ editor }) => {
       titleEditorRef.current = editor;
-      setIsReady(true);
     },
   });
 
   useEffect(() => {
-    if (isReady && titleEditor) {
-      const timeout = setTimeout(() => {
-        titleEditor.commands.focus('end');
-      }, 300); // Slight delay to ensure focus works on mobile
-      return () => clearTimeout(timeout);
+    if (titleEditorRef.current) {
+      titleEditorRef.current.commands.focus('end');
     }
-  }, [isReady, titleEditor]);
+  }, [titleEditorRef.current]);
+
   const contentEditor = useEditor({
     extensions: [
       StarterKit,
@@ -130,14 +125,29 @@ export const CreateNotePage: FC = () => {
   }, [titleEditor]);
 
   useEffect(() => {
-    const focusTimeout = setTimeout(() => {
-      if (titleEditor) {
-        titleEditor.commands.focus('start');
-      }
-    }, 100);
+    if (!isMobile) {
+      titleEditorRef.current?.commands.focus('start'); 
+      return;
+    }
   
-    return () => clearTimeout(focusTimeout);
-  }, [titleEditor]);
+    const dummyInput = document.createElement('input');
+    dummyInput.style.position = 'absolute';
+    dummyInput.style.opacity = '0';
+    dummyInput.style.height = '0';
+    dummyInput.style.width = '0';
+    dummyInput.style.zIndex = '-1';
+    document.body.appendChild(dummyInput);
+    dummyInput.focus();
+  
+    setTimeout(() => {
+      dummyInput.remove();
+      titleEditorRef.current?.commands.focus('start');
+    }, 200);
+  
+    return () => {
+      dummyInput.remove();
+    };
+  }, []);
   
 
   useEffect(() => {
@@ -260,12 +270,54 @@ export const CreateNotePage: FC = () => {
   };
 
   const handleStopListening = () => {
-    recognitionRef.current?.stop();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current.onend = null;
+      recognitionRef.current = null;
+    }
+  
     setIsListening(false);
+  
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      stream.getTracks().forEach((track) => track.stop());
+    });
+  
+    if (audioContext) {
+      audioContext.close().then(() => {
+        setAudioContext(null);
+        setAnalyser(null);
+      });
+    }
   };
 
   useEffect(() => {
-    if (!isListening || audioContext) return;
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+      if (audioContext) {
+        audioContext.close();
+        setAudioContext(null);
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        stream.getTracks().forEach((track) => track.stop());
+      });
+    };
+  }, []);  
+  
+
+  useEffect(() => {
+    if (!isListening) {
+      if (audioContext) {
+        audioContext.close();
+        setAudioContext(null);
+      }
+      if (analyser) {
+        setAnalyser(null);
+      }
+      return;
+    }
   
     const context = new AudioContext();
     const analyserNode = context.createAnalyser();
@@ -283,16 +335,13 @@ export const CreateNotePage: FC = () => {
       setAudioContext(null);
       setAnalyser(null);
     };
-  }, [isListening]);
+  }, [isListening]);  
 
   useEffect(() => {
     if (generatedContent && generatedContent.length <= 100000) {
       contentEditor?.commands.setContent(generatedContent);
     }
   }, [generatedContent]);
-
-  
-  
 
   const openModal = () => {
     setAiInput('');
@@ -306,48 +355,35 @@ export const CreateNotePage: FC = () => {
   
   const generateAIContent = async () => {
     if (!aiInput.trim()) return;
-
+  
     const controller = new AbortController();
     controllerRef.current = controller;
     const signal = controller.signal;
-
+  
     setAiGenerating(true);
     setIsCanceled(false);
-
+  
     try {
-      const response = await axios.post(
-        'https://api.cohere.ai/generate',
-        {
-          model: 'command-xlarge-nightly',
-          prompt: aiInput,
-          max_tokens: 500,
-          temperature: 0.7,
-        },
-        {
-          headers: {
-            Authorization: `Bearer fXzcYyUOXqbUqzarYPhzFp2C21qGhj1V3orIzslW`,
-            'Content-Type': 'application/json',
-          },
-          signal,
-        }
-      );
-
+      let generatedText = await generateAIContentService(aiInput, signal);
+  
       if (isCanceled) {
         console.log('Generation canceled by user.');
         return;
       }
-
-      let generatedText = response.data.text.trim();
+  
+      // Clean and prepare the generated text
       generatedText = generatedText.replace(/\n\n/g, '<p></p>');
-
+  
       if (generatedText.length > 30000) {
         generatedText = `${generatedText.slice(0, 30000)}...`;
       }
-
+  
       const updatedContent = `${content}\n\n${generatedText}`;
-      setContent(updatedContent);
-      contentEditor?.commands.setContent(updatedContent);
-
+  
+      // Immediately update the editor and content state
+      contentEditor?.commands.setContent(updatedContent); // Update the editor content
+      setContent(updatedContent); // Update the state
+  
       setAiInput('');
     } catch (error) {
       if (axios.isCancel(error)) {
@@ -359,7 +395,7 @@ export const CreateNotePage: FC = () => {
       setAiGenerating(false);
       closeModal();
     }
-  };
+  };  
 
   const handleCancelGenerate = () => {
     setIsCanceled(true);
@@ -408,7 +444,8 @@ export const CreateNotePage: FC = () => {
         window.visualViewport.removeEventListener('scroll', handleResize);
       }
     };
-  }, [isEditing, isModalOpen, isMobile]);  
+  }, [isEditing, isModalOpen, isMobile]); 
+  
   
   return (
     <Page back={true}>

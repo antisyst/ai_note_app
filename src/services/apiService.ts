@@ -1,29 +1,36 @@
 import axios from 'axios';
 
 const API_KEY = 'fXzcYyUOXqbUqzarYPhzFp2C21qGhj1V3orIzslW';
-const BASE_URL = 'https://api.cohere.ai';
+const API_URL = 'https://api.cohere.ai/generate';
 
-export const generateAIContent = async (prompt: string, model: string = 'command-xlarge-nightly', maxTokens: number = 500, temperature: number = 0.7): Promise<string> => {
+export const generateAIContentService = async (
+  aiInput: string,
+  signal?: AbortSignal
+): Promise<string> => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/generate`,
+      API_URL,
       {
-        model,
-        prompt,
-        max_tokens: maxTokens,
-        temperature,
+        model: 'command-xlarge-nightly',
+        prompt: aiInput,
+        max_tokens: 500,
+        temperature: 0.7,
       },
       {
         headers: {
           Authorization: `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
         },
+        signal,
       }
     );
-
     return response.data.text.trim();
   } catch (error) {
-    console.error('Error generating AI content:', error);
+    if (axios.isCancel(error)) {
+      console.log('Request canceled:', error.message);
+    } else {
+      console.error('Error generating AI content:', error);
+    }
     throw error;
   }
 };

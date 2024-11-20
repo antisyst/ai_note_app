@@ -126,14 +126,29 @@ export const CreateNotePage: FC = () => {
   }, [titleEditor]);
 
   useEffect(() => {
-    const focusTimeout = setTimeout(() => {
-      if (titleEditor) {
-        titleEditor.commands.focus('start');
-      }
-    }, 100);
+    if (!isMobile) {
+      titleEditorRef.current?.commands.focus('start'); 
+      return;
+    }
   
-    return () => clearTimeout(focusTimeout);
-  }, [titleEditor]);
+    const dummyInput = document.createElement('input');
+    dummyInput.style.position = 'absolute';
+    dummyInput.style.opacity = '0';
+    dummyInput.style.height = '0';
+    dummyInput.style.width = '0';
+    dummyInput.style.zIndex = '-1';
+    document.body.appendChild(dummyInput);
+    dummyInput.focus();
+  
+    setTimeout(() => {
+      dummyInput.remove();
+      titleEditorRef.current?.commands.focus('start');
+    }, 200);
+  
+    return () => {
+      dummyInput.remove();
+    };
+  }, []);
   
 
   useEffect(() => {
@@ -256,12 +271,54 @@ export const CreateNotePage: FC = () => {
   };
 
   const handleStopListening = () => {
-    recognitionRef.current?.stop();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current.onend = null;
+      recognitionRef.current = null;
+    }
+  
     setIsListening(false);
+  
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      stream.getTracks().forEach((track) => track.stop());
+    });
+  
+    if (audioContext) {
+      audioContext.close().then(() => {
+        setAudioContext(null);
+        setAnalyser(null);
+      });
+    }
   };
 
   useEffect(() => {
-    if (!isListening || audioContext) return;
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+      if (audioContext) {
+        audioContext.close();
+        setAudioContext(null);
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        stream.getTracks().forEach((track) => track.stop());
+      });
+    };
+  }, []);  
+  
+
+  useEffect(() => {
+    if (!isListening) {
+      if (audioContext) {
+        audioContext.close();
+        setAudioContext(null);
+      }
+      if (analyser) {
+        setAnalyser(null);
+      }
+      return;
+    }
   
     const context = new AudioContext();
     const analyserNode = context.createAnalyser();
@@ -279,16 +336,13 @@ export const CreateNotePage: FC = () => {
       setAudioContext(null);
       setAnalyser(null);
     };
-  }, [isListening]);
+  }, [isListening]);  
 
   useEffect(() => {
     if (generatedContent && generatedContent.length <= 100000) {
       contentEditor?.commands.setContent(generatedContent);
     }
   }, [generatedContent]);
-
-  
-  
 
   const openModal = () => {
     setAiInput('');
@@ -404,7 +458,8 @@ export const CreateNotePage: FC = () => {
         window.visualViewport.removeEventListener('scroll', handleResize);
       }
     };
-  }, [isEditing, isModalOpen, isMobile]);  
+  }, [isEditing, isModalOpen, isMobile]); 
+  
   
   return (
     <Page back={true}>
