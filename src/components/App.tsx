@@ -5,6 +5,7 @@ import { Navigate, Route, Routes, useLocation, matchPath } from 'react-router-do
 import { routes } from '../navigation/routes';
 import { BottomNavigation } from './BottomNavigation/BottomNavigation';
 import { ProtectedRoute } from './ProtectedRoute';
+import { StartPage } from '@/pages/StartPage/StartPage';
 
 export function App() {
   const [isRegistered, setIsRegistered] = useState(!!localStorage.getItem('userId'));
@@ -17,13 +18,13 @@ export function App() {
   const pageVariants = {
     initial: { opacity: 0, y: 50 },
     in: { opacity: 1, y: 0 },
-    out: { opacity: 0, y: -50 }
+    out: { opacity: 0, y: -50 },
   };
 
   const pageTransition = {
     type: 'tween',
     ease: 'anticipate',
-    duration: 0.5
+    duration: 0.5,
   };
 
   const showBottomNav = !matchPath('/note/:id', location.pathname);
@@ -32,6 +33,22 @@ export function App() {
     <AppRoot>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
+          {/* Define the base route */}
+          <Route
+            path="/"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={pageTransition}
+                className="page-wrapper"
+              >
+                {isRegistered ? <Navigate to="/index" replace /> : <StartPage />}
+              </motion.div>
+            }
+          />
           {routes.map((route) => (
             <Route
               key={route.path}
@@ -56,7 +73,7 @@ export function App() {
               }
             />
           ))}
-          <Route path="*" element={<Navigate to={isRegistered ? '/index' : '/'} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
       {isRegistered && location.pathname !== '/' && showBottomNav && <BottomNavigation />}
