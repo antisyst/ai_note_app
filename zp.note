@@ -1,819 +1,342 @@
-CreateNotePage.tsx:
+App.tsx:
 
-import ReactDOM from 'react-dom';
-import { FC, useState, useCallback, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Page } from '../../components/Page';
-import { EditorContent, useEditor, Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Placeholder from '@tiptap/extension-placeholder';
-import CodeBlock from '@tiptap/extension-code-block';
-import styles from './CreateNotePage.module.scss';
-import Code from '@tiptap/extension-code';
-import { NoteHeader } from './components/NoteHeader/NoteHeader';
-import { Toolbar } from './components/Toolbar/Toolbar';
-import { AIModal } from './components/AIModal/AIModal';
-import { isMobile } from 'react-device-detect';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { AppRoot } from '@telegram-apps/telegram-ui';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Navigate, Route, Routes, useLocation, matchPath } from 'react-router-dom';
+import { routes } from '../navigation/routes';
+import { BottomNavigation } from './BottomNavigation/BottomNavigation';
+import { ProtectedRoute } from './ProtectedRoute';
 
-
-interface HistoryEntry {
-  type: 'title' | 'content';
-  content: string;
-}
-
-interface SpeechRecognitionError extends Event {
-  error: string;
-}
-
-export const CreateNotePage: FC = () => {
-  const navigate = useNavigate();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [isEditing, setIsEditing] = useState(true);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [canSave, setCanSave] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [aiInput, setAiInput] = useState('');
-  const [aiGenerating, setAiGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState('');
-  const [isCanceled, setIsCanceled] = useState(false);
-  const controllerRef = useRef<AbortController | null>(null);
-  const titleEditorRef = useRef<Editor | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  
-
-  const speechLanguage = (localStorage.getItem('speechLanguage') || 'en-US').split('-')[0].toUpperCase();
-
-  const titleEditor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder: 'Title',
-        emptyNodeClass:
-          'first:before:text-gray-400 first:before:float-left first:before:content-[attr(data-placeholder)] first:before:h-0',
-      }),
-    ],
-    content: title,
-    editable: isEditing,
-    onUpdate: ({ editor }) => {
-      const text = editor.getText();
-      ReactDOM.unstable_batchedUpdates(() => {
-        setHistory((prev) => [...prev, { type: 'title', content: title }]);
-        setTitle(text);
-        setRedoStack([]);
-      });
-    },
-    onCreate: ({ editor }) => {
-      titleEditorRef.current = editor;
-    },
-  });
+export function App() {
+  const [isRegistered, setIsRegistered] = useState(!!localStorage.getItem('userId'));
+  const location = useLocation();
 
   useEffect(() => {
-    if (titleEditorRef.current) {
-      titleEditorRef.current.commands.focus('end');
-    }
-  }, [titleEditorRef.current]);
+    setIsRegistered(!!localStorage.getItem('userId'));
+  }, [location]);
 
-  const contentEditor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-      placeholder: 'Type your content here...',
-      emptyNodeClass:
-       'first:before:text-gray-400 first:before:float-left first:before:content-[attr(data-placeholder)] first:before:h-0',
-     }),
-      Code,
-      CodeBlock.configure({ HTMLAttributes: { class: 'code-block' } }),
-    ],
-    content: content,
-    editable: isEditing,
-    onUpdate: ({ editor }) => {
-      const htmlContent = editor.getHTML();
-      ReactDOM.unstable_batchedUpdates(() => {
-        setHistory((prev) => [...prev, { type: 'content', content }]);
-        setContent(htmlContent);
-        setRedoStack([]);
-      });
-    },
-  });
-
-  useEffect(() => {
-    setCanSave(title.trim().length > 0 && content.trim().length > 0);
-  }, [title, content]);
-
-  useEffect(() => {
-    if (titleEditor) {
-      titleEditor.commands.focus('start');
-    }
-
-    const handleResize = () => {
-      if (isMobile) {
-        const newKeyboardHeight = window.innerHeight - document.documentElement.clientHeight;
-        setKeyboardHeight(newKeyboardHeight > 0 ? newKeyboardHeight : 0);
-      } else {
-        setKeyboardHeight(0);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [titleEditor]);
-
-  useEffect(() => {
-    if (!isMobile) {
-      titleEditorRef.current?.commands.focus('start'); 
-      return;
-    }
-  
-    const dummyInput = document.createElement('input');
-    dummyInput.style.position = 'absolute';
-    dummyInput.style.opacity = '0';
-    dummyInput.style.height = '0';
-    dummyInput.style.width = '0';
-    dummyInput.style.zIndex = '-1';
-    document.body.appendChild(dummyInput);
-    dummyInput.focus();
-  
-    setTimeout(() => {
-      dummyInput.remove();
-      titleEditorRef.current?.commands.focus('start');
-    }, 200);
-  
-    return () => {
-      dummyInput.remove();
-    };
-  }, []);
-  
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (isMobile) {
-        const newKeyboardHeight = window.innerHeight - document.documentElement.clientHeight;
-        setKeyboardHeight(newKeyboardHeight > 0 ? newKeyboardHeight : 0);
-      } else {
-        setKeyboardHeight(0);
-      }
-    };
-  
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-
-  const handleUndo = useCallback(() => {
-    if (history.length === 0) return;
-
-    const lastChange = history.pop();
-    setRedoStack((prev) => [lastChange!, ...prev]);
-
-    if (lastChange?.type === 'title') {
-      setTitle(lastChange.content);
-      titleEditor?.commands.setContent(lastChange.content);
-    } else if (lastChange?.type === 'content') {
-      setContent(lastChange.content);
-      contentEditor?.commands.setContent(lastChange.content);
-    }
-
-    setHistory([...history]);
-  }, [history, titleEditor, contentEditor]);
-
-  const handleRedo = useCallback(() => {
-    if (redoStack.length === 0) return;
-
-    const nextChange = redoStack.shift();
-    setHistory((prev) => [...prev, nextChange!]);
-
-    if (nextChange?.type === 'title') {
-      setTitle(nextChange.content);
-      titleEditor?.commands.setContent(nextChange.content);
-    } else if (nextChange?.type === 'content') {
-      setContent(nextChange.content);
-      contentEditor?.commands.setContent(nextChange.content);
-    }
-
-    setRedoStack([...redoStack]);
-  }, [redoStack, titleEditor, contentEditor]);
-
-  const handleSaveClick = () => {
-    const newId = Date.now().toString();
-    const notes = JSON.parse(localStorage.getItem('notes') || '{}');
-    notes[newId] = { title, content };
-    localStorage.setItem('notes', JSON.stringify(notes));
-    navigate('/index');
+  const pageVariants = {
+    initial: { opacity: 0, y: 50 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -50 }
   };
 
-  const handleCancelClick = () => {
-    navigate('/index');
+  const pageTransition = {
+    type: 'tween',
+    ease: 'anticipate',
+    duration: 0.5
   };
 
-  const handleSpeechRecognition = () => {
-    if (!recognitionRef.current) {
-      recognitionRef.current = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognitionRef.current.lang = speechLanguage;
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
+  const showBottomNav = !matchPath('/note/:id', location.pathname);
 
-      recognitionRef.current.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
-        const transcriptArray = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join(' ');
-
-        const isFinal = event.results[event.results.length - 1].isFinal;
-        const processedText = transcriptArray
-          .replace(/\bnew line\b/gi, '\n')
-          .replace(/\bcomma\b/gi, ',')
-          .replace(/\bperiod\b/gi, '.')
-          .replace(/\bdelete\b/gi, () => {
-            setContent((prevContent) => prevContent.slice(0, -1));
-            return '';
-          });
-
-          const newContent = `${processedText} `;
-
-          requestAnimationFrame(() => {
-            contentEditor?.commands.setContent(
-              `<motion.div
-                key={Date.now()}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                ${newContent}
-              </motion.div>`,
-              isFinal
-            );
-          });
-      };
-
-      recognitionRef.current.onerror = (event: SpeechRecognitionError) => {
-        console.error(`Error: ${event.error}`);
-      };
-
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-        if (isListening) recognitionRef.current?.start();
-      };
-    }
-
-    recognitionRef.current.start();
-  };
-
-  const handleStopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current.onend = null;
-      recognitionRef.current = null;
-    }
-  
-    setIsListening(false);
-  
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      stream.getTracks().forEach((track) => track.stop());
-    });
-  
-    if (audioContext) {
-      audioContext.close().then(() => {
-        setAudioContext(null);
-        setAnalyser(null);
-      });
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-        recognitionRef.current = null;
-      }
-      if (audioContext) {
-        audioContext.close();
-        setAudioContext(null);
-      }
-      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        stream.getTracks().forEach((track) => track.stop());
-      });
-    };
-  }, []);  
-  
-
-  useEffect(() => {
-    if (!isListening) {
-      if (audioContext) {
-        audioContext.close();
-        setAudioContext(null);
-      }
-      if (analyser) {
-        setAnalyser(null);
-      }
-      return;
-    }
-  
-    const context = new AudioContext();
-    const analyserNode = context.createAnalyser();
-    analyserNode.fftSize = 256;
-  
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const source = context.createMediaStreamSource(stream);
-      source.connect(analyserNode);
-      setAudioContext(context);
-      setAnalyser(analyserNode);
-    });
-  
-    return () => {
-      context?.close();
-      setAudioContext(null);
-      setAnalyser(null);
-    };
-  }, [isListening]);  
-
-  useEffect(() => {
-    if (generatedContent && generatedContent.length <= 100000) {
-      contentEditor?.commands.setContent(generatedContent);
-    }
-  }, [generatedContent]);
-
-  const openModal = () => {
-    setAiInput('');
-    setIsModalOpen(true);
-  };
-  
-  const closeModal = () => {
-    setAiInput('');
-    setIsModalOpen(false);
-  };  
-  
-  const generateAIContent = async () => {
-    if (!aiInput.trim()) return;
-
-    const controller = new AbortController();
-    controllerRef.current = controller;
-    const signal = controller.signal;
-
-    setAiGenerating(true);
-    setIsCanceled(false);
-
-    try {
-      const response = await axios.post(
-        'https://api.cohere.ai/generate',
-        {
-          model: 'command-xlarge-nightly',
-          prompt: aiInput,
-          max_tokens: 500,
-          temperature: 0.7,
-        },
-        {
-          headers: {
-            Authorization: `Bearer fXzcYyUOXqbUqzarYPhzFp2C21qGhj1V3orIzslW`,
-            'Content-Type': 'application/json',
-          },
-          signal,
-        }
-      );
-
-      if (isCanceled) {
-        console.log('Generation canceled by user.');
-        return;
-      }
-
-      let generatedText = response.data.text.trim();
-      generatedText = generatedText.replace(/\n\n/g, '<p></p>');
-
-      if (generatedText.length > 30000) {
-        generatedText = `${generatedText.slice(0, 30000)}...`;
-      }
-
-      const updatedContent = `${content}\n\n${generatedText}`;
-      setContent(updatedContent);
-      contentEditor?.commands.setContent(updatedContent);
-
-      setAiInput('');
-    } catch (error) {
-      if (axios.isCancel(error)) {
-        console.log('Request canceled:', error.message);
-      } else {
-        console.error('Error generating AI content:', error);
-      }
-    } finally {
-      setAiGenerating(false);
-      closeModal();
-    }
-  };
-
-  const handleCancelGenerate = () => {
-    setIsCanceled(true);
-    controllerRef.current?.abort();
-    controllerRef.current = null;
-    setAiGenerating(false);
-    closeModal();
-  };
-
-
-  useEffect(() => {
-    if (generatedContent) {
-      const safeContent = `${content}\n\n${generatedContent}`;
-      if (safeContent.length > 30000) {
-        console.warn('Content length exceeds maximum allowed size.');
-        console.log(setGeneratedContent);
-      } else {
-        setContent(safeContent);
-        contentEditor?.commands.setContent(safeContent); 
-      }
-    }
-  }, [generatedContent, contentEditor]);  
-  
-  useEffect(() => {
-    const handleResize = () => {
-      if (isMobile && window.visualViewport) {
-        const keyboardHeight = window.innerHeight - window.visualViewport.height;
-        if (isEditing && !isModalOpen) {
-          setKeyboardHeight(keyboardHeight > 0 ? keyboardHeight : 0);
-        } else {
-          setKeyboardHeight(0);
-        }
-      }
-    };
-  
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
-      window.visualViewport.addEventListener('scroll', handleResize);
-    }
-  
-    handleResize();
-  
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleResize);
-        window.visualViewport.removeEventListener('scroll', handleResize);
-      }
-    };
-  }, [isEditing, isModalOpen, isMobile]); 
-  
-  
   return (
-    <Page back={true}>
-      <NoteHeader
-        handleUndo={handleUndo}
-        handleRedo={handleRedo}
-        handleSpeechRecognition={handleSpeechRecognition}
-        handleStopListening={handleStopListening}
-        handleCancelClick={handleCancelClick}
-        handleSaveClick={handleSaveClick}
-        openModal={openModal}
-        isListening={isListening}
-        historyLength={history.length}
-        redoStackLength={redoStack.length}
-        canSave={canSave}
-        speechLanguage={speechLanguage}
-        audioContext={audioContext}
-        analyser={analyser}
-      />
-      <div className={styles.scrollContainer}>
-        <div onClick={() => setIsEditing(true)} className={styles.titleEditorContainer}>
-          <EditorContent editor={titleEditor} className={styles.titleEditor} />
+    <AppRoot>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {routes.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                <motion.div
+                  initial="initial"
+                  animate="in"
+                  exit="out"
+                  variants={pageVariants}
+                  transition={pageTransition}
+                  className="page-wrapper"
+                >
+                  {route.path === '/index' || route.path === '/settings' ? (
+                    <ProtectedRoute isRegistered={isRegistered}>
+                      <route.Component />
+                    </ProtectedRoute>
+                  ) : (
+                    <route.Component />
+                  )}
+                </motion.div>
+              }
+            />
+          ))}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </AnimatePresence>
+      {isRegistered && location.pathname !== '/' && showBottomNav && <BottomNavigation />}
+    </AppRoot>
+  );
+}
+
+ProtectedRoute.tsx:
+
+import { FC } from 'react';
+import { Navigate } from 'react-router-dom';
+
+interface ProtectedRouteProps {
+  isRegistered: boolean;
+  children: React.ReactNode;
+}
+
+export const ProtectedRoute: FC<ProtectedRouteProps> = ({ isRegistered, children }) => {
+  if (!isRegistered) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+};
+
+Root.tsx:
+
+import { App } from './App';
+import { ErrorBoundary } from './ErrorBoundary.tsx';
+import { HashRouter } from 'react-router-dom'; 
+
+function ErrorBoundaryError({ error }: { error: unknown }) {
+  return (
+    <div>
+      <p>An unhandled error occurred:</p>
+      <blockquote>
+        <code>
+          {error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+              ? error
+              : JSON.stringify(error)}
+        </code>
+      </blockquote>
+    </div>
+  );
+}
+
+export function Root() {
+  return (
+    <ErrorBoundary fallback={ErrorBoundaryError}>
+        <HashRouter>
+          <App />
+        </HashRouter>
+    </ErrorBoundary>
+  );
+}
+
+LoadingOverlay.tsx:
+
+import { FC } from 'react';
+import styles from './LoadingOverlay.module.scss';
+import LoaderSpinner from '../../assets/spinner.svg';
+
+export const LoadingOverlay: FC = () => (
+  <div className={styles['loading-overlay']}>
+     <img src={LoaderSpinner} alt="Loader" />
+  </div>
+);
+
+StartPage.tsx:
+
+import { FC, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { initData, useSignal } from '@telegram-apps/sdk-react';
+import { LoadingOverlay } from '../../components/LoadingOverlay/LoadingOverlay';
+import styles from './Startpage.module.scss';
+
+export const StartPage: FC = () => {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const initDataState = useSignal(initData.state);
+
+  const handleStartClick = () => {
+    setLoading(true);
+    const user = initDataState?.user;
+    if (user) {
+      localStorage.setItem('userId', user.id.toString());
+
+      setTimeout(() => {
+        setLoading(false);
+        navigate('/index');
+      }, 200000);
+    }
+  };
+
+  useEffect(() => {
+    if (localStorage.getItem('userId')) {
+      navigate('/index');
+    }
+  }, [navigate]);
+
+  if (loading) {
+    return <LoadingOverlay />;
+  }
+
+  return (
+    <div className={styles['start-page-layout']}>
+      <div className={styles['start-page-content-container']}>
+        <h1 className={styles['name']}>Notelytic</h1>
+        <p>Welcome! Your personal AI-powered note-taking assistant. Create content and get inspiration with AI assistance!</p>
+      </div>
+      <button onClick={handleStartClick} className={styles['get-started-button']}>
+        Get Started
+      </button>
+    </div>
+  );
+};
+
+IndexPage.tsx:
+
+import React, { FC, useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { initData, useSignal } from '@telegram-apps/sdk-react';
+import { Search, Plus } from 'lucide-react';
+import { Page } from '../../components/Page';
+import { NoteItem } from '@/components/NoteItem/NoteItem';
+import styles from './IndexPage.module.scss';
+import { useTranslation } from 'react-i18next';
+
+const INTRO_NOTE_ID = '1';
+const INTRO_NOTE = {
+  title: "Welcome to Notelytic! Unlock the Power of AI in Note-Taking",
+  content: "Welcome to Notelytic, your personal AI-powered note-taking assistant! 🌟\n\n" +
+           "With Notelytic, you can:\n\n" +
+           "✨ **Create or Edit Notes with AI Assistance**\nGet inspired and let AI help you write or refine your thoughts.\n\n" +
+           "🎨 **Choose Custom Themes**\nPersonalize your notes with beautiful themes that suit your style.\n\n" +
+           "📅 **Organize Effortlessly**\nEfficiently categorize and find your notes, so you never lose track.\n\n" +
+           "Get started now and unlock a new level of productivity and creativity with Notelytic!"
+};
+
+const getNotes = () => {
+  const savedNotes = localStorage.getItem('notes');
+  return savedNotes ? JSON.parse(savedNotes) : {};
+};
+
+const saveNotesToLocalStorage = (notes: Record<string, { title: string; content: string; isPinned?: boolean }>) => {
+  localStorage.setItem('notes', JSON.stringify(notes));
+};
+
+export const IndexPage: FC = () => {
+  const navigate = useNavigate();
+  const initDataState = useSignal(initData.state);
+  const { t } = useTranslation();
+  const user = initDataState?.user;
+
+  const [notes, setNotes] = useState<Record<string, { title: string; content: string; isPinned?: boolean }>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    
+    const loadNotes = () => {
+      const existingNotes = getNotes();
+      if (!existingNotes[INTRO_NOTE_ID]) {
+        existingNotes[INTRO_NOTE_ID] = INTRO_NOTE;
+        saveNotesToLocalStorage(existingNotes);
+      }
+      const sortedNotes = Object.entries(existingNotes).sort(([, a], [, b]) => {
+        const noteA = a as { title: string; content: string; isPinned?: boolean };
+        const noteB = b as { title: string; content: string; isPinned?: boolean };
+        return (noteB.isPinned ? 1 : 0) - (noteA.isPinned ? 1 : 0);
+      });
+      setNotes(Object.fromEntries(sortedNotes) as Record<string, { title: string; content: string; isPinned?: boolean }>);
+      setLoading(false);
+    };
+
+    loadNotes();
+
+    const handleStorageChange = () => {
+      loadNotes();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollContainer = scrollContainerRef.current;
+      const searchPosition = searchRef.current?.offsetTop || 0;
+      if (scrollContainer) {
+        setIsScrolled(scrollContainer.scrollTop > searchPosition);
+      }
+    };
+
+    const scrollContainer = scrollContainerRef.current;
+    scrollContainer?.addEventListener('scroll', handleScroll);
+    return () => scrollContainer?.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleSearch = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  }, []);
+
+  const filteredNotes = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return Object.entries(notes).filter(([, note]) =>
+      note.title.toLowerCase().includes(lowerSearchTerm) ||
+      note.content.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [notes, searchTerm]);
+
+  const displayName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.username ? `@${user.username}` : 'User';
+
+  const handleAddNoteClick = () => {
+    navigate('/note/new');
+  };
+
+  if (loading) {
+    return (
+      <Page back={false}>
+        <div className={styles.loadingContainer}>
+          <p>{t('LoadingNotes')}</p>
         </div>
-        <div onClick={() => setIsEditing(true)} className={styles.editorContainer}>
-          <EditorContent editor={contentEditor} className={styles.editorContent} />
+      </Page>
+    );
+  }
+
+  return (
+    <Page back={false}>
+      <header className={`${styles.homeHeader} ${isScrolled ? styles.homeHeaderScrolled : ''}`}>
+        <div className={styles.homeHeaderRowContainer}>
+          <div className={styles.homeHeaderRow}>
+            <span>{displayName}</span>
+          </div>
+          <div className={styles.homeHeaderRow}>
+            <p>FREMIUM</p>
+          </div>
+        </div>
+      </header>
+      <div
+        ref={searchRef}
+        className={styles.searchContainer}
+      >
+        <input
+          type="text"
+          placeholder={t('SearchNotes')}
+          className={styles.searchInput}
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+        <Search color='var(--wht)' size={25} strokeWidth={1.8}/>
+      </div>
+      <div ref={scrollContainerRef} className={styles.scrollContainer}>
+        <div className={styles.notesList}>
+          {filteredNotes.map(([id, note]) => (
+            <MemoizedNoteItem
+              key={id}
+              title={note.title}
+              content={note.content}
+              id={parseInt(id)}
+            />
+          ))}
         </div>
       </div>
-      {isEditing && (
-        <Toolbar
-          contentEditor={contentEditor}
-          isMobile={isMobile}
-          keyboardHeight={keyboardHeight}
-         />
-      )}
-      <AIModal
-        isOpen={isModalOpen}
-        onClose={handleCancelGenerate}
-        onGenerate={generateAIContent}
-        aiInput={aiInput}
-        setAiInput={setAiInput}
-        aiGenerating={aiGenerating}
-      />
+      <button className={styles.addButton} onClick={handleAddNoteClick}>
+        <Plus color='var(--blck)' size={28} />
+      </button>
     </Page>
   );
 };
 
-NoteHeader.tsx:
-
-import { FC } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Undo2, Redo2, Mic } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import SoundVisualizer from '@/components/SoundVisualizer';
-import styles from './NoteHeader.module.scss';
-
-interface NoteHeaderProps {
-  handleUndo: () => void;
-  handleRedo: () => void;
-  handleSpeechRecognition: () => void;
-  handleStopListening: () => void;
-  handleCancelClick: () => void;
-  handleSaveClick: () => void;
-  openModal: () => void;
-  isListening: boolean;
-  historyLength: number;
-  redoStackLength: number;
-  canSave: boolean;
-  speechLanguage: string;
-  audioContext: AudioContext | null;
-  analyser: AnalyserNode | null;
-}
-
-export const NoteHeader: FC<NoteHeaderProps> = ({
-  handleUndo,
-  handleRedo,
-  handleSpeechRecognition,
-  handleStopListening,
-  handleCancelClick,
-  handleSaveClick,
-  openModal,
-  isListening,
-  historyLength,
-  redoStackLength,
-  canSave,
-  audioContext,
-  analyser,
-}) => {
-  const { t } = useTranslation();
-
-  return (
-    <header className={styles.noteHeader}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key="toolbar"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.2 }}
-          className={styles.noteHeaderTools}
-        >
-          <div className={styles.noteHeaderToolRow}>
-            <button onClick={handleUndo} className={styles.undoButton} disabled={historyLength === 0}>
-              <Undo2 />
-            </button>
-            <button onClick={handleRedo} className={styles.redoButton} disabled={redoStackLength === 0}>
-              <Redo2 />
-            </button>
-            <button onClick={openModal} className={styles.aiButton}>
-              AI
-            </button>
-            <button
-              onClick={isListening ? handleStopListening : handleSpeechRecognition}
-              className={`${styles.microphoneButton} ${isListening ? styles.active : ''}`}
-              aria-label={t('Start voice input')}
-            >
-              <AnimatePresence mode="wait">
-                {isListening ? (
-                  <motion.div
-                    key="visualizer"
-                    className={styles.visualizerContainer}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 500,
-                      damping: 30,
-                    }}
-                  >
-                    <SoundVisualizer audioContext={audioContext} analyser={analyser} isActive={isListening} />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="micIcon"
-                    className={styles.micIcon}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 500,
-                      damping: 30,
-                    }}
-                  >
-                    <Mic />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
-          </div>
-          <div className={styles.noteHeaderToolRow}>
-            <button onClick={handleCancelClick} className={styles.cancelButton}>
-              {t('Cancel')}
-            </button>
-            <button onClick={handleSaveClick} className={styles.saveButton} disabled={!canSave}>
-              {t('Save')}
-            </button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    </header>
-  );
-};
-
-Toolbar.tsx:
-
-import { FC, useState, useEffect } from 'react';
-import { Editor } from '@tiptap/react';
-import { Bold, Italic, Strikethrough, Code, SquareDashedBottomCode, List } from 'lucide-react';
-import styles from './Toolbar.module.scss';
-import { motion } from 'framer-motion';
-
-interface ToolbarProps {
-  contentEditor: Editor | null;
-  isMobile: boolean;
-  keyboardHeight: number;
-}
-
-export const Toolbar: FC<ToolbarProps> = ({ contentEditor, isMobile }) => {
-  const [bottomOffset, setBottomOffset] = useState(0);
-
-  useEffect(() => {
-    const handleViewportResize = () => {
-      if (isMobile && window.visualViewport) {
-        const keyboardHeight = window.visualViewport.height < window.innerHeight
-          ? window.innerHeight - window.visualViewport.height
-          : 0;
-        setBottomOffset(keyboardHeight);
-      } else {
-        setBottomOffset(0);
-      }
-    };
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleViewportResize);
-      window.visualViewport.addEventListener('scroll', handleViewportResize);
-    }
-
-    handleViewportResize();
-
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleViewportResize);
-        window.visualViewport.removeEventListener('scroll', handleViewportResize);
-      }
-    };
-  }, [isMobile]);
-
-  return (
-    <motion.div
-      className={styles.toolbar}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.2, ease: 'easeInOut' }}
-      style={{
-        position: 'fixed',
-        bottom: `${bottomOffset}px`,
-        left: '0',
-        right: '0',
-        zIndex: 1000,
-      }}
-    >
-      <button
-        onClick={() => contentEditor?.chain().focus().toggleBold().run()}
-        className={contentEditor?.isActive('bold') ? styles.activeButton : ''}
-      >
-        <Bold/>
-      </button>
-      <button
-        onClick={() => contentEditor?.chain().focus().toggleItalic().run()}
-        className={contentEditor?.isActive('italic') ? styles.activeButton : ''}
-      >
-        <Italic/>
-      </button>
-      <button
-        onClick={() => contentEditor?.chain().focus().toggleStrike().run()}
-        className={contentEditor?.isActive('strike') ? styles.activeButton : ''}
-      >
-        <Strikethrough/>
-      </button>
-      <button
-        onClick={() => contentEditor?.chain().focus().toggleCode().run()}
-        className={contentEditor?.isActive('code') ? styles.activeButton : ''}
-      >
-        <Code/>
-      </button>
-      <button
-        onClick={() => contentEditor?.chain().focus().toggleCodeBlock().run()}
-        className={contentEditor?.isActive('codeBlock') ? styles.activeButton : ''}
-      >
-        <SquareDashedBottomCode/>
-      </button>
-      <button
-        onClick={() => contentEditor?.chain().focus().toggleBulletList().run()}
-        className={contentEditor?.isActive('bulletList') ? styles.activeButton : ''}
-      >
-        <List/>
-      </button>
-    </motion.div>
-  );
-};
-
-AIModal.tsx:
-
-import { FC, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Timer } from 'lucide-react';
-import Modal from '@/components/Modal/Modal';
-import styles from './AIModal.module.scss';
-
-interface AIModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onGenerate: () => void;
-  aiInput: string;
-  setAiInput: (value: string) => void;
-  aiGenerating: boolean;
-}
-
-export const AIModal: FC<AIModalProps> = ({
-  isOpen,
-  onClose,
-  onGenerate,
-  aiInput,
-  setAiInput,
-  aiGenerating,
-}) => {
-  const [elapsedTime, setElapsedTime] = useState(0);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (aiGenerating) {
-      setElapsedTime(0);
-      const startTime = Date.now();
-
-      interval = setInterval(() => {
-        const now = Date.now();
-        setElapsedTime(now - startTime); 
-      }, 10);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [aiGenerating]);
-
-  const formattedTime = (elapsedTime / 1000).toFixed(2);
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className={styles.modalHeader}>
-        <h2 className={styles.generateContent}>Generate AI Content</h2>
-      </div>
-      <textarea
-        value={aiInput}
-        onChange={(e) => setAiInput(e.target.value)}
-        placeholder="Type your topic or question..."
-        className={styles.aiInput}
-      />
-      <div className={styles.modalActions}>
-        <div className={styles.modalActionsRow}>
-          <AnimatePresence>
-            {aiGenerating && (
-              <motion.div
-                key="animated-counter"
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                className={styles.counterContainer}
-              >
-                <p className={styles.counter}>
-                  <Timer size={20}/> 
-                  <span>{formattedTime}s</span>
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        <div className={styles.modalActionsRow}>
-          <button onClick={onClose} className={styles.cancelButton}>
-            Cancel
-          </button>
-          <button
-            onClick={onGenerate}
-            disabled={aiGenerating}
-            className={styles.generateButton}
-          >
-            {aiGenerating ? 'Generating...' : 'Generate'}
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-};
+const MemoizedNoteItem = React.memo(NoteItem);

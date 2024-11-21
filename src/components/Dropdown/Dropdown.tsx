@@ -63,8 +63,8 @@ export const Dropdown: FC<DropdownProps> = ({ options, selected, onSelect, label
             variants={dropdownVariants}
             initial="hidden"
             animate="visible"
-            exit="hidden" // Ensure consistent "exit" state
-            transition={dropdownTransition} // Use consistent transition
+            exit="hidden"
+            transition={dropdownTransition}
           >
             {options.map((option) => (
               <button

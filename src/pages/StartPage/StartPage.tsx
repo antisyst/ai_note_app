@@ -1,24 +1,17 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initData, useSignal } from '@telegram-apps/sdk-react';
-import { LoadingOverlay } from '../../components/LoadingOverlay/LoadingOverlay';
 import styles from './Startpage.module.scss';
 
 export const StartPage: FC = () => {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const initDataState = useSignal(initData.state);
 
   const handleStartClick = () => {
-    setLoading(true);
     const user = initDataState?.user;
     if (user) {
       localStorage.setItem('userId', user.id.toString());
-
-      setTimeout(() => {
-        setLoading(false);
-        navigate('/index');
-      }, 200000);
+      navigate('/index');
     }
   };
 
@@ -27,10 +20,6 @@ export const StartPage: FC = () => {
       navigate('/index');
     }
   }, [navigate]);
-
-  if (loading) {
-    return <LoadingOverlay />;
-  }
 
   return (
     <div className={styles['start-page-layout']}>

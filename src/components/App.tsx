@@ -56,7 +56,7 @@ export function App() {
               }
             />
           ))}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to={isRegistered ? '/index' : '/'} />} />
         </Routes>
       </AnimatePresence>
       {isRegistered && location.pathname !== '/' && showBottomNav && <BottomNavigation />}
